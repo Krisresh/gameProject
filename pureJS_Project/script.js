@@ -68,6 +68,7 @@ function draw() {
   drawBricks();
   drawPaddle();
   drawScore();
+  drawLives();
   collisionDetection();
 
   if (rightPressed) {
@@ -89,7 +90,6 @@ function draw() {
       if (!lives) {
         alert("GAME OVER");
         document.location.reload();
-        clearInterval(interval); // Needed for Chrome to end game
       } else {
         x = canvas.width / 2;
         y = canvas.height - 30;
@@ -102,6 +102,7 @@ function draw() {
 
   x += dx;
   y += dy;
+  requestAnimationFrame(draw);
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -167,4 +168,4 @@ function drawLives() {
   ctx.fillText(`Lives: ${lives}`, canvas.width - 65, 20);
 }
 
-const Interval = setInterval(draw, 10);
+draw();
