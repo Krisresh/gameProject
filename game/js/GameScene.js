@@ -21,6 +21,8 @@ class GameScene extends Phaser.Scene {
       .setVelocity(200, 0)
       .setBounce(1, 1)
       .setCollideWorldBounds(true);
+
+      this.body.enable = false;
   }
 
   update() {
