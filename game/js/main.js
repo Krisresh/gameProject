@@ -8,7 +8,6 @@ let config = {
     default: "arcade",
     arcade: {
       debug: false,
-      gravity: { y: 600 },
     },
   },
 };

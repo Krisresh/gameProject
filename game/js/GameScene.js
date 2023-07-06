@@ -9,48 +9,45 @@ class GameScene extends Phaser.Scene {
   create() {
     this.createBackgraund();
     this.createObjects();
-    // this.moveBall();
   }
   createBackgraund() {
     this.add.image(0, 0, "bg").setOrigin(0);
   }
 
+  startMove() {
+    this.firstBall.setVelocity(200, 200).setDrag(0.2);
+    this.startGame = true;
+  }
+
+  restartMove() {
+    this.firstBall
+      .setVelocity(0)
+      .setPosition(config.width / 2, config.height / 2);
+    this.startGame = false;
+  }
+
   createObjects() {
     this.firstBall = this.physics.add
-      .image(200, 200, "ball")
-      .setVelocity(200, 0)
+      .image(config.width / 2, config.height / 2, "ball")
+      .setVelocity(0, 0)
       .setBounce(1, 1)
-      .setCollideWorldBounds(true);
+      .setCollideWorldBounds(true)
+      .setFriction(1)
+      .setDrag(0.2) // Значение трения, можно изменять для разных эффектов
+      .setMaxVelocity(400); // Максимальная скорость мяча
 
-      this.body.enable = false;
+    this.physics.world.enable([this.firstBall]);
+
+    this.input.on("pointerdown", (pointer) => {
+      if (!this.startGame) {
+        this.startMove();
+      } else {
+        this.restartMove();
+      }
+    });
   }
 
   update() {
     this.firstBall.rotation = this.firstBall.body.angle;
   }
-
-  moveBall() {
-    console.log(this.firstBall);
-    this.firstBall.setPosition(100, 100);
-  }
 }
-
-// class Ball extends Phaser.GameObjects.Sprite {
-//   constructor(GameScene) {
-//     super("GameScene");
-//     this.create();
-//     this.init();
-//   }
-
-//   init() {
-//     // добавляем объект на сцену как спрайт
-//     this.GameScene.add.existing(this); // вызываем текеущую сцену/ в качестве параметра ссылка на этот префаб
-//     this.GameScene.physics.add.existing(this); // активизируем физическое тело
-//     this.body.enable = true;
-//     this.velocity = 500;
-//   }
-
-//   create() {
-//     this.ballTexture = Image.create(GameScene, 30, 30, "ball");
-//   }
-// }
