@@ -17,6 +17,7 @@ class GameScene extends Phaser.Scene {
   startMove() {
     this.firstBall.setVelocity(2000, 2000).setDrag(0.2);
     this.startGame = true;
+    //this.physics.accelerateToObject(this.firstBall, cursor, 100);
   }
 
   restartMove() {
@@ -32,10 +33,16 @@ class GameScene extends Phaser.Scene {
       .setVelocity(0, 0)
       .setBounce(1, 1)
       .setCollideWorldBounds(true);
+    //.setMaxSpeed(300);
 
     this.firstBall.setAcceleration(0, 0);
 
     this.physics.world.enable([this.firstBall]);
+
+    this.graphics = this.add.graphics({
+      lineStyle: { width: 10, color: 0xffdd00, alpha: 0.5 },
+    });
+    this.line = new Phaser.Geom.Line();
 
     this.input.on("pointerdown", (pointer) => {
       if (!this.startGame) {
@@ -43,6 +50,13 @@ class GameScene extends Phaser.Scene {
       } else {
         this.restartMove();
       }
+    });
+
+    let angle = 0;
+    this.input.on("pointermove", (pointer) => {
+      this.angle = Phaser.Math.Angle.BetweenPoints(this.firstBall, pointer);
+      Phaser.Geom.Line.SetToAngle(line, 0, 0, this.angle, 128);
+      graphics.clear().strokeLineShape(line);
     });
   }
 
