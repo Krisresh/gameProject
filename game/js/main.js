@@ -1,12 +1,13 @@
 let config = {
   typer: Phaser.AUTO,
-  width: 720,
-  height: 1280,
+  width: 1080,
+  height: 1920,
   scene: GameScene,
   physics: {
     // подключение физического движка
-    default: "arcade",
-    arcade: {
+    default: "matter",
+    matter: {
+      gravity: { y: 0 },
       debug: false,
     },
   },
