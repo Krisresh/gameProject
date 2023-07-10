@@ -31,7 +31,8 @@ class GameScene extends Phaser.Scene {
     }
 
     startMove() {
-        if (this.power && this.velocityY) {
+        if (this.power) {
+            this.velocityX = this.slider.getValue();
             this.firstBall.setVelocity(-this.velocityX * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
         }
@@ -77,50 +78,55 @@ class GameScene extends Phaser.Scene {
 
         //кнопки угла
 
-        this.buttonEngleLeft30 = new Button(this, config.width / 2 - 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
+        // this.buttonEngleLeft30 = new Button(this, config.width / 2 - 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-        this.buttonEngleLeft30.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.velocityX = 750;
-                this.velocityY = 4000;
-            }
-        });
+        // this.buttonEngleLeft30.buttonBackground.on("pointerdown", () => {
+        //     if (!this.startGame) {
+        //         this.velocityX = 750;
+        //         this.velocityY = 4000;
+        //     }
+        // });
 
-        this.buttonEngleLeft15 = new Button(this, config.width / 2 - 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
+        // this.buttonEngleLeft15 = new Button(this, config.width / 2 - 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-        this.buttonEngleLeft15.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.velocityX = 500;
-                this.velocityY = 4000;
-            }
-        });
+        // this.buttonEngleLeft15.buttonBackground.on("pointerdown", () => {
+        //     if (!this.startGame) {
+        //         this.velocityX = 500;
+        //         this.velocityY = 4000;
+        //     }
+        // });
 
-        this.buttonEngle0 = new Button(this, config.width / 2, config.height - 100, "0", { font: "60px Arial", fill: "#000000" }, "button_bg");
+        // this.buttonEngle0 = new Button(this, config.width / 2, config.height - 100, "0", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-        this.buttonEngle0.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.velocityX = 0;
-                this.velocityY = 4000;
-            }
-        });
+        // this.buttonEngle0.buttonBackground.on("pointerdown", () => {
+        //     if (!this.startGame) {
+        //         this.velocityX = 0;
+        //         this.velocityY = 4000;
+        //     }
+        // });
 
-        this.buttonEngleRight15 = new Button(this, config.width / 2 + 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
+        // this.buttonEngleRight15 = new Button(this, config.width / 2 + 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-        this.buttonEngleRight15.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.velocityX = -500;
-                this.velocityY = 4000;
-            }
-        });
+        // this.buttonEngleRight15.buttonBackground.on("pointerdown", () => {
+        //     if (!this.startGame) {
+        //         this.velocityX = -500;
+        //         this.velocityY = 4000;
+        //     }
+        // });
 
-        this.buttonEngleRight30 = new Button(this, config.width / 2 + 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
+        // this.buttonEngleRight30 = new Button(this, config.width / 2 + 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-        this.buttonEngleRight30.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.velocityX = -750;
-                this.velocityY = 4000;
-            }
-        });
+        // this.buttonEngleRight30.buttonBackground.on("pointerdown", () => {
+        //     if (!this.startGame) {
+        //         this.velocityX = -750;
+        //         this.velocityY = 4000;
+        //     }
+        // });
+
+        this.slider = new Slider(this, 600, config.height - 100, 300, 20, 0x888888, 0xffffff, 0, 0, 1000);
+        this.slider.setValue(50);
+
+        this.slider.setScale(2)
 
         //кнопки силы
 
@@ -157,6 +163,71 @@ class GameScene extends Phaser.Scene {
         });
     }
 }
+
+class Slider extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, width, height, trackColor, handleColor, initialValue, minValue, maxValue) {
+        super(scene, x, y);
+        this.scene = scene;
+        this.width = width;
+        this.height = height;
+        this.trackColor = trackColor;
+        this.handleColor = handleColor;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.currentValue = initialValue || minValue;
+
+        this.track = scene.add.rectangle(0, 0, width, height, trackColor);
+        this.handle = scene.add.rectangle(0, 0, height, height, handleColor);
+        this.handle.setInteractive({ draggable: true });
+
+        this.add([this.track, this.handle]);
+        this.setSize(width, height);
+        this.scene.add.existing(this);
+
+        this.handle.on("drag", this.onDragMove, this);
+        this.handle.on("dragstart", this.onDragStart, this);
+        this.handle.on("dragend", this.onDragEnd, this);
+        this.handle.on("dragenter", this.onDragMove, this);
+        this.handle.on("dragleave", this.onDragMove, this);
+
+        this.isDragging = false; // Flag to track dragging state
+    }
+
+    onDragStart(pointer) {
+        this.isDragging = true;
+        this.onDragMove(pointer); // Update handle position immediately
+    }
+
+    onDragMove(pointer) {
+        if (!this.isDragging) return;
+
+        const localX = pointer.x - this.x - (this.width / 2); // Calculate the local X position relative to the container
+        const clampedX = Phaser.Math.Clamp(localX, 0, this.width);
+        const ratio = clampedX / this.width;
+        this.currentValue = this.minValue + (this.maxValue - this.minValue) * ratio;
+        this.handle.x = clampedX;
+    }
+
+    onDragEnd(pointer) {
+        this.isDragging = false;
+    }
+
+    setValue(value) {
+        this.currentValue = Phaser.Math.Clamp(value, this.minValue, this.maxValue);
+        const ratio = (this.currentValue - this.minValue) / (this.maxValue - this.minValue);
+        const handleX = ratio * this.width;
+        this.handle.x = handleX;
+    }
+
+    getValue() {
+        return this.currentValue;
+    }
+}
+
+
+
+
+
 
 class Button extends Phaser.GameObjects.Container {
     constructor(scene, x, y, text, style, backgroundImageKey) {
