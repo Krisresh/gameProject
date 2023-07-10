@@ -1,106 +1,163 @@
 class GameScene extends Phaser.Scene {
-  constructor() {
-    super("GameScene");
-  }
+    constructor() {
+        super("GameScene");
+    }
 
-  preload() {
-    this.load.image("bg", "assets/background.jpeg");
-    this.load.image("ball", "assets/ball.png");
-  }
+    preload() {
+        this.load.image("bg", "assets/background.jpeg");
+        this.load.image("ball", "assets/ball.png");
+        this.load.image("button_bg", "assets/button_bg.jpg");
+    }
 
-  create() {
-    this.createBackground();
-    this.createObjects();
-  }
+    create() {
+        this.createBackground();
+        this.createObjects();
+        this.createControlButtons();
+    }
 
-  createBackground() {
-    this.add.image(0, 0, "bg").setOrigin(0);
-  }
+    createBackground() {
+        this.add.image(0, 0, "bg").setOrigin(0);
+    }
 
-  // startMove() {
-  //   this.firstBall.setVelocity(2000, 2000).setDrag(0.2);
-  //   this.startGame = true;
-  // }
+    startMove() {
+        this.firstBall.setVelocity(2000, 2000).setDrag(0.2);
+        this.startGame = true;
+    }
 
-  // restartMove() {
-  //   this.firstBall
-  //     .setVelocity(0)
-  //     .setPosition(config.width / 2, config.height / 2);
-  //   this.startGame = false;
-  // }
+    restartMove() {
+        this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
+        this.startGame = false;
+    }
 
-  createObjects() {
-    this.matter.world.setBounds(0, 0, 1080, 1920);
-    this.matter.add.mouseSpring({ stiffness: 1 });
+    createObjects() {
+        this.firstBall = this.physics.add
+            .image(config.width / 2, config.height - 300, "ball")
+            .setVelocity(0, 0)
+            .setBounce(1, 1)
+            .setCollideWorldBounds(true);
+        this.firstBall.setAcceleration(0, 0);
+        this.physics.world.enable([this.firstBall]);
+    }
 
-    // this.firstBall = this.matter.add.image(
-    //   config.width / 2,
-    //   config.height / 2,
-    //   "ball"
-    // );
+    createControlButtons() {
+        //кноки управления игрой
 
-    this.firstBall = this.matter.add
-      .image(config.width / 2, config.height / 2, "ball", null, {
-        shape: "circle",
-        friction: 1,
-        restitution: 1,
-      })
-      .setBounce(0.9);
+        this.buttonStart = new Button(this, 300, config.height - 300, "ST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
-    this.matter.add.gameObject(this.firstBall, false);
+        this.buttonStart.buttonBackground.on("pointerdown", () => {
+            if (!this.startGame) {
+                this.startMove();
+            }
+        });
 
-    // this.matter.add.gameObject(poly, this.firstBall, false);
-  }
+        this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
-  //this.firstBall.setAcceleration(0, 0);
+        this.buttonRetart.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
 
-  // this.graphics = this.add.graphics({
-  //   lineStyle: { width: 10, color: 0xffdd00, alpha: 0.5 },
-  // });
-  // this.line = new Phaser.Geom.Line();
+        //кнопки угла
 
-  // this.input.on("pointerdown", (pointer) => {
-  //   if (!this.startGame) {
-  //     this.startMove();
-  //   } else {
-  //     this.restartMove();
-  //   }
-  // });
+        this.buttonEngleLeft30 = new Button(this, config.width / 2 - 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-  // this.input.on("pointermove", (pointer) => {
-  //   const ballPosition = new Phaser.Math.Vector2(
-  //     this.firstBall.x,
-  //     this.firstBall.y
-  //   );
-  // const pointerPosition = new Phaser.Math.Vector2(pointer.x, pointer.y);
-  // const lineLength = Phaser.Math.Distance.BetweenPoints(
-  //   ballPosition,
-  //   pointerPosition
-  // );
+        this.buttonEngleLeft30.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
 
-  // this.line.setTo(
-  //   ballPosition.x,
-  //   ballPosition.y,
-  //   pointerPosition.x,
-  //   pointerPosition.y
-  // );
+        this.buttonEngleLeft15 = new Button(this, config.width / 2 - 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-  //this.graphics.clear();
-  //this.graphics.strokeLineShape(this.line);
-  // });
-  //this.matter.add.mouseSpring();
+        this.buttonEngleLeft15.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
 
-  //}
+        this.buttonEngle0 = new Button(this, config.width / 2, config.height - 100, "0", { font: "60px Arial", fill: "#000000" }, "button_bg");
 
-  // update() {
-  //   if (this.startGame) {
-  //     const deceleration = 2;
-  //     this.firstBall.setAcceleration(
-  //       -this.firstBall.body.velocity.x * deceleration,
-  //       -this.firstBall.body.velocity.y * deceleration
-  //     );
-  //   } else {
-  //     this.firstBall.setVelocity(0, 0).setAcceleration(0, 0);
-  //   }
-  // }
+        this.buttonEngle0.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        this.buttonEngleRight15 = new Button(this, config.width / 2 + 110, config.height - 100, "15", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonEngleRight15.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        this.buttonEngleRight30 = new Button(this, config.width / 2 + 220, config.height - 100, "30", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonEngleRight30.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        //кнопки силы
+
+        this.buttonPower25 = new Button(this, 1000, config.height - 100, "25", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonPower25.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        this.buttonPower50 = new Button(this, 1000, config.height - 210, "50", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonPower50.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        this.buttonPower75 = new Button(this, 1000, config.height - 320, "75", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonPower75.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+
+        this.buttonPower100 = new Button(this, 1000, config.height - 430, "100", { font: "60px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonPower100.buttonBackground.on("pointerdown", () => {
+            if (this.startGame) {
+                this.restartMove();
+            }
+        });
+    }
+
+    update() {
+        if (this.startGame) {
+            // Замедление мяча
+            const deceleration = 2; // Величина замедления, можно изменять
+            this.firstBall.setAcceleration(-this.firstBall.body.velocity.x * deceleration, -this.firstBall.body.velocity.y * deceleration);
+        } else {
+            this.firstBall.setVelocity(0, 0).setAcceleration(0, 0);
+        }
+    }
+}
+
+class Button extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, text, style, backgroundImageKey) {
+        super(scene, x, y);
+        this.scene = scene;
+        this.backgroundImageKey = backgroundImageKey;
+
+        this.buttonBackground = scene.add.image(0, 0, backgroundImageKey).setInteractive();
+        this.buttonText = scene.add.text(0, 0, text, style);
+        this.buttonText.setOrigin(0.5);
+
+        this.add([this.buttonBackground, this.buttonText]);
+        this.setSize(this.buttonBackground.width, this.buttonBackground.height);
+        this.scene.add.existing(this);
+    }
 }
