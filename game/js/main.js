@@ -9,9 +9,3 @@ let config = {
     },
 };
 let game = new Phaser.Game(config);
-
-class gameProject {
-    create() {
-        // тут создание игровых объектов
-    }
-}
