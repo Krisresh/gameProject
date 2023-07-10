@@ -20,11 +20,7 @@ class GameScene extends Phaser.Scene {
     }
 
     createObjects() {
-        this.firstBall = this.physics.add
-            .image(config.width / 2, config.height - 300, "ball")
-            .setVelocity(0, 0)
-            .setBounce(1, 1)
-            .setCollideWorldBounds(true);
+        this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(true);
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable([this.firstBall]);
 
@@ -35,7 +31,7 @@ class GameScene extends Phaser.Scene {
     }
 
     startMove() {
-        if (this.power) {
+        if (this.power && this.velocityY) {
             this.firstBall.setVelocity(-this.velocityX * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
         }
