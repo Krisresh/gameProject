@@ -18,7 +18,6 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
-        this.createTargets();
     }
 
     createBackground() {
@@ -26,9 +25,12 @@ class GameScene extends Phaser.Scene {
     }
 
     createObjects() {
+        this.targets = this.physics.add.group();
+        this.createTargets();
+
         this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(true);
         this.firstBall.setAcceleration(0, 0);
-        this.physics.world.enable([this.firstBall]);
+        this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
     
         this.velocityX = null;
@@ -36,7 +38,7 @@ class GameScene extends Phaser.Scene {
         this.power = null;
         this.startGame = false;
     
-        this.targets = this.physics.add.group();
+        
     }
     
 
@@ -57,6 +59,7 @@ class GameScene extends Phaser.Scene {
     update() {
         if (this.startGame) {
             // Замедление мяча
+            console.log("222222222")
             const deceleration = 2; // Величина замедления, можно изменять
             this.firstBall.setAcceleration(-this.firstBall.body.velocity.x * deceleration, -this.firstBall.body.velocity.y * deceleration);
         } else {
@@ -65,17 +68,22 @@ class GameScene extends Phaser.Scene {
     }
 
     createTargets() {
+        const targetWidth = config.width; // Ширина каждой полосы мишени
+        const targetHeight = 100;
         const targetCount = 5;
-        const targetHeight = 60;
-        const targetSpacing = 100;
-
+        const targetSpacing = 10; // Расстояние между полосами мишеней
+    
+        const totalHeight = targetCount * (targetHeight + targetSpacing) - targetSpacing;
+        const startY = (config.height - 1000 - totalHeight) / 2; // Начальная позиция по Y
+    
         for (let i = 0; i < targetCount; i++) {
-            const targetY = (config.height - targetSpacing) - (i * targetSpacing);
-            const target = new Target(this, targetY, targetHeight);
+            const targetY = startY + i * (targetHeight + targetSpacing);
+            const color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
+            const target = new Target(this, config.width / 2, targetY, targetWidth, targetHeight, color);
             this.targets.add(target);
         }
     }
-
+    
     createControlButtons() {
         //кноки управления игрой
 
@@ -166,19 +174,21 @@ class GameScene extends Phaser.Scene {
 }
 
 class Target extends Phaser.GameObjects.Graphics {
-    constructor(scene, y, height) {
+    constructor(scene, x, y, width, height, color) {
         super(scene);
 
+        this.x = x;
         this.y = y;
-        this.height = height;
-        this.width = config.width;
 
-        this.fillStyle(0x00ff00);
-        this.fillRect(0, this.y, this.width, this.height);
+        this.fillStyle(color);
+        this.fillRect(-width / 2, -height / 2, width, height);
 
-        scene.add.existing(this);
+        this.scene.add.existing(this);
     }
 }
+
+
+
 
 class Button extends Phaser.GameObjects.Container {
     constructor(scene, x, y, text, style, backgroundImageKey) {
