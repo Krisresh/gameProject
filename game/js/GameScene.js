@@ -18,6 +18,7 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
+        this.createTargets();
     }
 
     createBackground() {
@@ -28,12 +29,16 @@ class GameScene extends Phaser.Scene {
         this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(true);
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable([this.firstBall]);
-
+        this.firstBall.setScale(0.5);
+    
         this.velocityX = null;
-        this.velocityY = 4000;
+        this.velocityY = 5000;
         this.power = null;
         this.startGame = false;
+    
+        this.targets = this.physics.add.group();
     }
+    
 
     startMove() {
         if (this.power) {
@@ -46,7 +51,7 @@ class GameScene extends Phaser.Scene {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
         this.startGame = false;
 
-        this.velocityY = 4000;
+        this.velocityY = 5000;
     }
 
     update() {
@@ -56,6 +61,18 @@ class GameScene extends Phaser.Scene {
             this.firstBall.setAcceleration(-this.firstBall.body.velocity.x * deceleration, -this.firstBall.body.velocity.y * deceleration);
         } else {
             this.firstBall.setVelocity(0, 0).setAcceleration(0, 0);
+        }
+    }
+
+    createTargets() {
+        const targetCount = 5;
+        const targetHeight = 60;
+        const targetSpacing = 100;
+
+        for (let i = 0; i < targetCount; i++) {
+            const targetY = (config.height - targetSpacing) - (i * targetSpacing);
+            const target = new Target(this, targetY, targetHeight);
+            this.targets.add(target);
         }
     }
 
@@ -145,6 +162,21 @@ class GameScene extends Phaser.Scene {
 
             this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight);
         };
+    }
+}
+
+class Target extends Phaser.GameObjects.Graphics {
+    constructor(scene, y, height) {
+        super(scene);
+
+        this.y = y;
+        this.height = height;
+        this.width = config.width;
+
+        this.fillStyle(0x00ff00);
+        this.fillRect(0, this.y, this.width, this.height);
+
+        scene.add.existing(this);
     }
 }
 
