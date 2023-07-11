@@ -37,8 +37,7 @@ class GameScene extends Phaser.Scene {
         this.velocityY = 5000;
         this.power = null;
         this.startGame = false;
-    
-        
+        this.isFullStop = true;
     }
     
 
@@ -46,6 +45,7 @@ class GameScene extends Phaser.Scene {
         if (this.power) {
             this.firstBall.setVelocity(this.velocityX * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
+            this.isFullStop = false;
         }
     }
 
@@ -54,6 +54,7 @@ class GameScene extends Phaser.Scene {
         this.startGame = false;
 
         this.velocityY = 5000;
+        this.isFullStop = true;
     }
 
     update() {
@@ -65,6 +66,21 @@ class GameScene extends Phaser.Scene {
         } else {
             this.firstBall.setVelocity(0, 0).setAcceleration(0, 0);
         }
+
+        if (this.firstBall.body.velocity.y > -1 && this.isFullStop == false) {
+            this.isFullStop = true;
+            this.checkBallTarget();
+        }
+    }
+
+    checkBallTarget() {
+        for (let i = 0; i < targetCount; i++) {
+            if (this.firstBall.y >= this.targets.children.entries[i].y && this.firstBall.y <= this.targets.children.entries[i].y + targetHeight) {
+                
+            }
+        }
+
+        console.log("CHECK - checkBallTarget()")
     }
 
     createTargets() {
@@ -82,6 +98,10 @@ class GameScene extends Phaser.Scene {
             const target = new Target(this, config.width / 2, targetY, targetWidth, targetHeight, color);
             this.targets.add(target);
         }
+
+        console.log("CHECK - TARGETS")
+        console.log(this.targets);
+        console.log(this.targets.children.entries[2]);
     }
     
     createControlButtons() {
