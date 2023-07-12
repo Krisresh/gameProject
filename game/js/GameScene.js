@@ -1,4 +1,3 @@
-
 class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
@@ -18,6 +17,7 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
+        this.createWind();
     }
 
     createBackground() {
@@ -32,18 +32,21 @@ class GameScene extends Phaser.Scene {
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
-    
+
         this.velocityX = null;
         this.velocityY = 5000;
         this.power = null;
         this.startGame = false;
         this.isFullStop = true;
+        this.wind = {
+            direction: null,
+            strength: null
+        };
     }
-    
 
     startMove() {
         if (this.power) {
-            this.firstBall.setVelocity(this.velocityX * this.power, -this.velocityY * this.power).setDrag(0.2);
+            this.firstBall.setVelocity((this.velocityX + this.wind.strength) * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
             this.isFullStop = false;
         }
@@ -52,15 +55,13 @@ class GameScene extends Phaser.Scene {
     restartMove() {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
         this.startGame = false;
-
-        this.velocityY = 5000;
+        this.generateWind();
         this.isFullStop = true;
     }
 
     update() {
         if (this.startGame) {
             // Замедление мяча
-            console.log("222222222")
             const deceleration = 2; // Величина замедления, можно изменять
             this.firstBall.setAcceleration(-this.firstBall.body.velocity.x * deceleration, -this.firstBall.body.velocity.y * deceleration);
         } else {
@@ -74,39 +75,32 @@ class GameScene extends Phaser.Scene {
     }
 
     checkBallTarget() {
-        for (let i = 0; i < targetCount; i++) {
-            if (this.firstBall.y >= this.targets.children.entries[i].y && this.firstBall.y <= this.targets.children.entries[i].y + targetHeight) {
-                
+        for (let i = 0; i < this.targetCount; i++) {
+            if (this.firstBall.y >= this.targets.children.entries[i].y && this.firstBall.y <= this.targets.children.entries[i].y + this.targetHeight) {
+
             }
         }
-
-        console.log("CHECK - checkBallTarget()")
     }
 
     createTargets() {
-        const targetWidth = config.width; // Ширина каждой полосы мишени
-        const targetHeight = 100;
-        const targetCount = 5;
-        const targetSpacing = 10; // Расстояние между полосами мишеней
-    
-        const totalHeight = targetCount * (targetHeight + targetSpacing) - targetSpacing;
-        const startY = (config.height - 1000 - totalHeight) / 2; // Начальная позиция по Y
-    
-        for (let i = 0; i < targetCount; i++) {
-            const targetY = startY + i * (targetHeight + targetSpacing);
-            const color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
-            const target = new Target(this, config.width / 2, targetY, targetWidth, targetHeight, color);
-            this.targets.add(target);
-        }
+        this.targetWidth = config.width; // Ширина каждой полосы мишени
+        this.targetHeight = 100;
+        this.targetCount = 5;
+        this.targetSpacing = 10; // Расстояние между полосами мишеней
 
-        console.log("CHECK - TARGETS")
-        console.log(this.targets);
-        console.log(this.targets.children.entries[2]);
+        this.totalHeight = this.targetCount * (this.targetHeight + this.targetSpacing) - this.targetSpacing;
+        this.startY = (config.height - 1000 - this.totalHeight) / 2; // Начальная позиция по Y
+
+        for (let i = 0; i < this.targetCount; i++) {
+            this.targetY = this.startY + i * (this.targetHeight + this.targetSpacing);
+            this.color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
+            this.target = new Target(this, config.width / 2, this.targetY, this.targetWidth, this.targetHeight, this.color);
+            this.targets.add(this.target);
+        }
     }
-    
+
     createControlButtons() {
         //кноки управления игрой
-
         this.buttonStart = new Button(this, 300, config.height - 300, "ST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonStart.buttonBackground.on("pointerdown", () => {
@@ -130,9 +124,6 @@ class GameScene extends Phaser.Scene {
         const angleSliderX = config.width / 2;
         const angleSliderY = config.height - 100;
 
-        // this.angleSliderTrack = this.add.image(angleSliderX, angleSliderY, "slider_track").setOrigin(0);
-    
-
         this.angleSlider = this.add.rectangle(angleSliderX, angleSliderY, angleSliderWidth * 2, 100, 0xffffff).setInteractive()
             .on("pointerdown", (pointer) => {
                 this.updateAngleSlider(pointer.x);
@@ -144,18 +135,13 @@ class GameScene extends Phaser.Scene {
             });
 
         this.angleSliderThumb = this.add.image(angleSliderX, angleSliderY, "slider_thumb").setOrigin(0.5);
-        
+
         this.updateAngleSlider = (pointerX) => {
             const minAngle = -750;
             const maxAngle = 750;
-            // const angle = Phaser.Math.Clamp((pointerX - angleSliderX) / angleSliderWidth, 0, 1) * (maxAngle - minAngle) + minAngle;
-
             const normalizedX = (pointerX - (angleSliderX - angleSliderWidth)) / (angleSliderWidth * 2);
             const angle = Phaser.Math.Linear(minAngle, maxAngle, normalizedX);
-
-            // const velocityX = Math.cos(Phaser.Math.DegToRad(angle)) * 750;
             this.velocityX = angle;
-
             this.angleSliderThumb.x = Phaser.Math.Clamp(pointerX, angleSliderX - angleSliderWidth, angleSliderX + angleSliderWidth);
         };
 
@@ -165,8 +151,6 @@ class GameScene extends Phaser.Scene {
         const powerSliderX = 1000;
         const powerSliderY = config.height - 500;
 
-        //   this.powerSliderTrack = this.add.image(powerSliderX, powerSliderY, "slider_track_vertical").setOrigin(0);
-
         this.powerSlider = this.add.rectangle(powerSliderX, powerSliderY, powerSliderWidth, powerSliderHeight, 0xffffff)
             .setInteractive()
             .on("pointerdown", (pointer) => {
@@ -175,21 +159,32 @@ class GameScene extends Phaser.Scene {
             .on("pointermove", (pointer) => {
                 if (pointer.isDown) {
                     this.updatePowerSlider(pointer.y);
-                }  
+                }
             });
-            
+
         this.powerSliderThumb = this.add.image(powerSliderX, powerSliderY, "slider_thumb_vertical").setOrigin(0.5);
 
         this.updatePowerSlider = (pointerY) => {
             const minPower = 0;
             const maxPower = 1;
-            // const power = Phaser.Math.Clamp(1 - (pointerY - powerSliderY) / powerSliderHeight, 0, 1) * (maxPower - minPower) + minPower;
             const normalizedY = 1 - ((pointerY - (powerSliderY - powerSliderHeight)) / (powerSliderHeight * 2));
             const power = Phaser.Math.Linear(minPower, maxPower, normalizedY);
             this.power = power;
-
             this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight);
         };
+    }
+
+    createWind() {
+        this.generateWind();
+    }
+
+    generateWind() {
+        const minDirection = -1;
+        const maxDirection = 1;
+        const minStrength = -500;
+        const maxStrength = 500;
+        this.wind.direction = Phaser.Math.FloatBetween(minDirection, maxDirection);
+        this.wind.strength = Phaser.Math.Between(minStrength, maxStrength);
     }
 }
 
@@ -206,9 +201,6 @@ class Target extends Phaser.GameObjects.Graphics {
         this.scene.add.existing(this);
     }
 }
-
-
-
 
 class Button extends Phaser.GameObjects.Container {
     constructor(scene, x, y, text, style, backgroundImageKey) {
