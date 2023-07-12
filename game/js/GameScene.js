@@ -1,6 +1,8 @@
 class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
+        this.score = 0; // Счет
+        this.bet = 100; // Ставка на игру
     }
 
     preload() {
@@ -18,6 +20,8 @@ class GameScene extends Phaser.Scene {
         this.createObjects();
         this.createControlButtons();
         this.createWind();
+        this.createScore();
+        this.createBetText();
     }
 
     createBackground() {
@@ -28,7 +32,7 @@ class GameScene extends Phaser.Scene {
         this.targets = this.physics.add.group();
         this.createTargets();
 
-        this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(true);
+        this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(false);
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
@@ -49,6 +53,8 @@ class GameScene extends Phaser.Scene {
             this.firstBall.setVelocity((this.velocityX + this.wind.strength) * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
             this.isFullStop = false;
+            this.score -= 100;
+            this.updateScore();
         }
     }
 
@@ -76,10 +82,28 @@ class GameScene extends Phaser.Scene {
 
     checkBallTarget() {
         for (let i = 0; i < this.targetCount; i++) {
-            if (this.firstBall.y >= this.targets.children.entries[i].y && this.firstBall.y <= this.targets.children.entries[i].y + this.targetHeight) {
-
+            if (this.firstBall.y + 50 >= this.targets.children.entries[i].y && this.firstBall.y + 50 <= this.targets.children.entries[i].y + this.targetHeight) {
+                this.score += 200;
+                this.updateScore();
+                console.log("TARGET - " + i);
             }
         }
+    }
+
+    createScore() {
+        this.scoreText = this.add.text(20, 10, `Score: ${this.score}`, { font: "50px Arial", fill: "#ffffff" });
+    }
+
+    updateScore() {
+        this.scoreText.setText(`Score: ${this.score}`);
+    }
+
+    createBetText() {
+        this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
+    }
+
+    updateBetText() {
+        this.betText.setText(`Bet: ${this.bet}`);
     }
 
     createTargets() {
@@ -172,6 +196,14 @@ class GameScene extends Phaser.Scene {
             this.power = power;
             this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight);
         };
+
+        this.add1000Scores = new Button(this, config.width / 2, 50, "+1000", { font: "30px Arial", fill: "#000000" }, "button_bg");
+
+        this.add1000Scores.buttonBackground.on("pointerdown", () => {
+            this.score += 1000; // Установка ставки на игру равной 100
+            this.updateScore();
+        });
+
     }
 
     createWind() {
