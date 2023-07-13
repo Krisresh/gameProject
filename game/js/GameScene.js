@@ -22,6 +22,9 @@ class GameScene extends Phaser.Scene {
         this.createWind();
         this.createScore();
         this.createBetText();
+
+        this.math = new GameMath();
+        this.math.check();
     }
 
     createBackground() {
