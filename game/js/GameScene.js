@@ -24,7 +24,6 @@ class GameScene extends Phaser.Scene {
         this.createBetText();
 
         this.math = new GameMath();
-        this.math.check();
     }
 
     createBackground() {
@@ -116,12 +115,12 @@ class GameScene extends Phaser.Scene {
         this.targetSpacing = 10; // Расстояние между полосами мишеней
 
         this.totalHeight = this.targetCount * (this.targetHeight + this.targetSpacing) - this.targetSpacing;
-        this.startY = (config.height - 1000 - this.totalHeight) / 2; // Начальная позиция по Y
+        this.startY = (config.height - this.totalHeight) / 2; // Начальная позиция по Y
 
         for (let i = 0; i < this.targetCount; i++) {
-            this.targetY = this.startY + i * (this.targetHeight + this.targetSpacing);
+            this.targetY = this.startY - i * (this.targetHeight + this.targetSpacing);
             this.color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
-            this.target = new Target(this, config.width / 2, this.targetY, this.targetWidth, this.targetHeight, this.color);
+            this.target = new Target(this, config.width / 2, this.targetY, this.targetWidth, this.targetHeight, this.color, ((i + 1) * 0.5));
             this.targets.add(this.target);
         }
     }
@@ -133,6 +132,7 @@ class GameScene extends Phaser.Scene {
         this.buttonStart.buttonBackground.on("pointerdown", () => {
             if (!this.startGame) {
                 this.startMove();
+                this.math.getSlidersValues();
             }
         });
 
@@ -197,6 +197,7 @@ class GameScene extends Phaser.Scene {
             const normalizedY = 1 - ((pointerY - (powerSliderY - powerSliderHeight)) / (powerSliderHeight * 2));
             const power = Phaser.Math.Linear(minPower, maxPower, normalizedY);
             this.power = power;
+            console.log(this.power)
             this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight);
         };
 
@@ -224,16 +225,19 @@ class GameScene extends Phaser.Scene {
 }
 
 class Target extends Phaser.GameObjects.Graphics {
-    constructor(scene, x, y, width, height, color) {
-        super(scene);
+    constructor(scene, x, y, width, height, color, multiplayer) {
+        super(scene, x, y);
 
         this.x = x;
         this.y = y;
+        this.multiplayer = multiplayer;
 
         this.fillStyle(color);
         this.fillRect(-width / 2, -height / 2, width, height);
 
+
         this.scene.add.existing(this);
+        this.multiplayerText = scene.add.text(this.x - 500, this.y - 40, this.multiplayer + "X", { font: "80px Arial", fill: "#000000" });
     }
 }
 
