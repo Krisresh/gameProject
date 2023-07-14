@@ -24,6 +24,7 @@ class GameScene extends Phaser.Scene {
         this.createBetText();
 
         this.math = new GameMath();
+        this.math.randomiseMultiplyer();
     }
 
     createBackground() {
@@ -52,6 +53,7 @@ class GameScene extends Phaser.Scene {
 
     startMove() {
         if (this.power) {
+            this.math.getSlidersValues(this.power, this.velocityX)
             this.firstBall.setVelocity((this.velocityX + this.wind.strength) * this.power, -this.velocityY * this.power).setDrag(0.2);
             this.startGame = true;
             this.isFullStop = false;
@@ -85,7 +87,7 @@ class GameScene extends Phaser.Scene {
     checkBallTarget() {
         for (let i = 0; i < this.targetCount; i++) {
             if (this.firstBall.y + 50 >= this.targets.children.entries[i].y && this.firstBall.y + 50 <= this.targets.children.entries[i].y + this.targetHeight) {
-                this.score += 200;
+                this.score += 100 * this.targets.children.entries[i].multiplayer;
                 this.updateScore();
                 console.log("TARGET - " + i);
             }
@@ -207,7 +209,6 @@ class GameScene extends Phaser.Scene {
             this.score += 1000; // Установка ставки на игру равной 100
             this.updateScore();
         });
-
     }
 
     createWind() {

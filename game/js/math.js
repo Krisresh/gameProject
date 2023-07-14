@@ -16,11 +16,16 @@ class GameMath {
     getSlidersValues(powerSliderValue, angleSliderValue) {
         this.powerSliderValue = powerSliderValue;
         this.angleSliderValue = angleSliderValue;
+        console.log(this.powerSliderValue + " " + this.angleSliderValue);
     }
 
     randomiseMultiplyer() {
         let multiplayers = [0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, 1.5, 1.5, 1.5, 2, 2, 2.5];
+        var randomElement = multiplayers[Math.floor(Math.random() * multiplayers.length)];
+        console.log(randomElement);
     }
+
+
 }
 
 window.GameMath = GameMath;
