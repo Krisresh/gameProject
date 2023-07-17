@@ -19,7 +19,6 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
-        this.createWind();
         this.createScore();
         this.createBetText();
 
@@ -43,71 +42,12 @@ class GameScene extends Phaser.Scene {
         this.velocityX = null;
         this.velocityY = 5000;
         this.power = null;
-        this.startGame = false;
+        this.gameIsStart = false;
         this.isFullStop = true;
         this.wind = {
             direction: null,
             strength: null
         };
-    }
-
-    startMove() {
-        if (this.power) {
-            this.math.getSlidersValues(this.power, this.velocityX)
-            this.firstBall.setVelocity((this.velocityX + this.wind.strength) * this.power, -this.velocityY * this.power).setDrag(0.2);
-            this.startGame = true;
-            this.isFullStop = false;
-            this.score -= 100;
-            this.updateScore();
-        }
-    }
-
-    restartMove() {
-        this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
-        this.startGame = false;
-        this.generateWind();
-        this.isFullStop = true;
-    }
-
-    update() {
-        if (this.startGame) {
-            // Замедление мяча
-            const deceleration = 2; // Величина замедления, можно изменять
-            this.firstBall.setAcceleration(-this.firstBall.body.velocity.x * deceleration, -this.firstBall.body.velocity.y * deceleration);
-        } else {
-            this.firstBall.setVelocity(0, 0).setAcceleration(0, 0);
-        }
-
-        if (this.firstBall.body.velocity.y > -1 && this.isFullStop == false) {
-            this.isFullStop = true;
-            this.checkBallTarget();
-        }
-    }
-
-    checkBallTarget() {
-        for (let i = 0; i < this.targetCount; i++) {
-            if (this.firstBall.y + 50 >= this.targets.children.entries[i].y && this.firstBall.y + 50 <= this.targets.children.entries[i].y + this.targetHeight) {
-                this.score += 100 * this.targets.children.entries[i].multiplayer;
-                this.updateScore();
-                console.log("TARGET - " + i);
-            }
-        }
-    }
-
-    createScore() {
-        this.scoreText = this.add.text(20, 10, `Score: ${this.score}`, { font: "50px Arial", fill: "#ffffff" });
-    }
-
-    updateScore() {
-        this.scoreText.setText(`Score: ${this.score}`);
-    }
-
-    createBetText() {
-        this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
-    }
-
-    updateBetText() {
-        this.betText.setText(`Bet: ${this.bet}`);
     }
 
     createTargets() {
@@ -127,13 +67,56 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    startGame() {
+        this.gameIsStart = true;
+        this.multiplayer = this.math.randomiseMultiplyer();
+
+        this.newCoords = this.math.calculateCoord(this.multiplayer, this.targets);
+        console.log(this.newCoords[0]);
+        console.log(this.newCoords[1]);
+
+        // Add a tween to move the firstBall to the new coordinates with deceleration
+        this.tweens.add({
+            targets: this.firstBall,
+            x: this.newCoords[0],
+            y: this.newCoords[1],
+            duration: 1000, // Adjust the duration as needed
+            ease: Phaser.Math.Easing.Quadratic.Out, // Use the Quadratic.Out easing function
+            onComplete: () => {
+                // Code to be executed after the tween is complete
+                console.log('Ball reached destination');
+            }
+        });
+    }
+
+    restartGame() {
+        this.gameIsStart = false;
+        this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
+    }
+
+    createScore() {
+        this.scoreText = this.add.text(20, 10, `Score: ${this.score}`, { font: "50px Arial", fill: "#ffffff" });
+    }
+
+    updateScore() {
+        this.scoreText.setText(`Score: ${this.score}`);
+    }
+
+    createBetText() {
+        this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
+    }
+
+    updateBetText() {
+        this.betText.setText(`Bet: ${this.bet}`);
+    }
+
     createControlButtons() {
         //кноки управления игрой
         this.buttonStart = new Button(this, 300, config.height - 300, "ST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonStart.buttonBackground.on("pointerdown", () => {
-            if (!this.startGame) {
-                this.startMove();
+            if (!this.gameIsStart) {
+                this.startGame();
                 this.math.getSlidersValues();
             }
         });
@@ -141,8 +124,8 @@ class GameScene extends Phaser.Scene {
         this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonRetart.buttonBackground.on("pointerdown", () => {
-            if (this.startGame) {
-                this.restartMove();
+            if (this.gameIsStart) {
+                this.restartGame();
             }
         });
 
@@ -209,19 +192,6 @@ class GameScene extends Phaser.Scene {
             this.score += 1000; // Установка ставки на игру равной 100
             this.updateScore();
         });
-    }
-
-    createWind() {
-        this.generateWind();
-    }
-
-    generateWind() {
-        const minDirection = -1;
-        const maxDirection = 1;
-        const minStrength = -500;
-        const maxStrength = 500;
-        this.wind.direction = Phaser.Math.FloatBetween(minDirection, maxDirection);
-        this.wind.strength = Phaser.Math.Between(minStrength, maxStrength);
     }
 }
 

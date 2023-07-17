@@ -22,10 +22,29 @@ class GameMath {
     randomiseMultiplyer() {
         let multiplayers = [0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, 1.5, 1.5, 1.5, 2, 2, 2.5];
         var randomElement = multiplayers[Math.floor(Math.random() * multiplayers.length)];
-        console.log(randomElement);
+        return randomElement;
     }
 
+    calculateCoord(multiplayer, targets) {
+        this.multiplayer = multiplayer;
+        this.targets = targets;
 
+        console.log(this.multiplayer);
+        console.log(this.targets);
+
+        if (multiplayer == 0) {
+            console.log("MULT = 0");
+        } else {
+            for (let i = 0; i < 5; i++) {
+                if (this.multiplayer == this.targets.children.entries[i].multiplayer) {
+                    this.randNumber = Math.random();
+                    this.newX = this.randNumber * config.width;
+                    this.newY = this.targets.children.entries[i].y + 50 - (this.randNumber * 100);
+                    return [this.newX, this.newY];
+                }
+            }
+        }
+    }
 }
 
 window.GameMath = GameMath;
