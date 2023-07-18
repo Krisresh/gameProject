@@ -1,7 +1,6 @@
 class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
-        this.score = 0; // Счет
         this.bet = 100; // Ставка на игру
     }
 
@@ -19,11 +18,13 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
-        this.createScore();
         this.createBetText();
 
         this.math = new GameMath();
         this.math.randomiseMultiplyer();
+
+        this.math.createScores();
+        this.createScore();
     }
 
     createBackground() {
@@ -69,9 +70,14 @@ class GameScene extends Phaser.Scene {
 
     startGame() {
         this.gameIsStart = true;
+
+        this.math.scoresWhenStart(this.bet);
+        this.updateScore();
+
         this.multiplayer = this.math.randomiseMultiplyer();
 
-        this.newCoords = this.math.calculateCoord(this.multiplayer, this.targets);
+        this.sliderValues = this.math.getSlidersValues(this.power, this.angle);
+        this.newCoords = this.math.calculateCoord(this.multiplayer, this.targets, this.sliderValues, this.bet);
         console.log(this.newCoords[0]);
         console.log(this.newCoords[1]);
 
@@ -83,6 +89,7 @@ class GameScene extends Phaser.Scene {
             duration: 1000, // Adjust the duration as needed
             ease: Phaser.Math.Easing.Quadratic.Out, // Use the Quadratic.Out easing function
             onComplete: () => {
+                this.updateScore();
                 // Code to be executed after the tween is complete
                 console.log('Ball reached destination');
             }
@@ -95,11 +102,11 @@ class GameScene extends Phaser.Scene {
     }
 
     createScore() {
-        this.scoreText = this.add.text(20, 10, `Score: ${this.score}`, { font: "50px Arial", fill: "#ffffff" });
+        this.scoreText = this.add.text(20, 10, `Score: ${this.math.getScores()}`, { font: "50px Arial", fill: "#ffffff" });
     }
 
     updateScore() {
-        this.scoreText.setText(`Score: ${this.score}`);
+        this.scoreText.setText(`Score: ${this.math.getScores()}`);
     }
 
     createBetText() {
@@ -149,11 +156,12 @@ class GameScene extends Phaser.Scene {
         this.angleSliderThumb = this.add.image(angleSliderX, angleSliderY, "slider_thumb").setOrigin(0.5);
 
         this.updateAngleSlider = (pointerX) => {
-            const minAngle = -750;
-            const maxAngle = 750;
+            const minAngle = 0;
+            const maxAngle = 1;
             const normalizedX = (pointerX - (angleSliderX - angleSliderWidth)) / (angleSliderWidth * 2);
             const angle = Phaser.Math.Linear(minAngle, maxAngle, normalizedX);
-            this.velocityX = angle;
+            this.angle = angle;
+            console.log(this.angle);
             this.angleSliderThumb.x = Phaser.Math.Clamp(pointerX, angleSliderX - angleSliderWidth, angleSliderX + angleSliderWidth);
         };
 
@@ -179,11 +187,11 @@ class GameScene extends Phaser.Scene {
         this.updatePowerSlider = (pointerY) => {
             const minPower = 0;
             const maxPower = 1;
-            const normalizedY = 1 - ((pointerY - (powerSliderY - powerSliderHeight)) / (powerSliderHeight * 2));
+            const normalizedY = 1 - ((pointerY - (powerSliderY - powerSliderHeight / 2)) / (powerSliderHeight));
             const power = Phaser.Math.Linear(minPower, maxPower, normalizedY);
             this.power = power;
             console.log(this.power)
-            this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight);
+            this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight / 2);
         };
 
         this.add1000Scores = new Button(this, config.width / 2, 50, "+1000", { font: "30px Arial", fill: "#000000" }, "button_bg");
