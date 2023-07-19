@@ -1,11 +1,16 @@
 let config = {
-    typer: Phaser.AUTO,
+    type: Phaser.AUTO,
     width: 1080,
     height: 1920,
     scene: GameScene,
     physics: {
-        // подключение физического движка
         default: "arcade",
     },
+    scale: {
+        mode: Phaser.Scale.FIT,
+        //autoCenter: Phaser.Scale.CENTER_BOTH
+    }
 };
+
 let game = new Phaser.Game(config);
+
