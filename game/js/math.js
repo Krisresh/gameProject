@@ -49,12 +49,12 @@ class GameMath {
         if (multiplayer == 0) {
             if (this.sliders[0] < 0.5) {
                 this.randNumber = Math.random();
-                this.newX = this.randNumber * config.width;
+                this.newX = this.sliders[1];
                 this.newY = (this.targets.children.entries[0].y + ((1920 - this.targets.children.entries[0].y - 500) * this.randNumber));
                 return [this.newX, this.newY];
             } else {
                 this.randNumber = Math.random();
-                this.newX = this.randNumber * config.width;
+                this.newX = this.sliders[1];
                 this.newY = (this.targets.children.entries[4].y * this.randNumber);
                 return [this.newX, this.newY];
             }
@@ -62,7 +62,8 @@ class GameMath {
             for (let i = 0; i < 5; i++) {
                 if (this.multiplayer == this.targets.children.entries[i].multiplayer) {
                     this.randNumber = Math.random();
-                    this.newX = this.randNumber * config.width;
+                    // this.newX = this.randNumber * config.width;
+                    this.newX = this.sliders[1];
                     this.newY = this.targets.children.entries[i].y + 50 - (this.randNumber * 100);
                     this.scores = this.scores + (this.bet * this.targets.children.entries[i].multiplayer);
                     return [this.newX, this.newY];

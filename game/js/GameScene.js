@@ -5,7 +5,7 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("bg", "assets/background.jpeg");
+        this.load.image("bg", "assets/background.jpg");
         this.load.image("ball", "assets/ball.png");
         this.load.image("button_bg", "assets/button_bg.jpg");
         this.load.image("slider_track", "assets/slider_track.jpg");
@@ -62,7 +62,8 @@ class GameScene extends Phaser.Scene {
 
         for (let i = 0; i < this.targetCount; i++) {
             this.targetY = this.startY - i * (this.targetHeight + this.targetSpacing);
-            this.color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
+            // this.color = Phaser.Display.Color.RandomRGB().color; // Генерация случайного цвета
+            this.color = 0xe8cca5
             this.target = new Target(this, config.width / 2, this.targetY, this.targetWidth, this.targetHeight, this.color, ((i + 1) * 0.5));
             this.targets.add(this.target);
         }
@@ -156,8 +157,8 @@ class GameScene extends Phaser.Scene {
         this.angleSliderThumb = this.add.image(angleSliderX, angleSliderY, "slider_thumb").setOrigin(0.5);
 
         this.updateAngleSlider = (pointerX) => {
-            const minAngle = 0;
-            const maxAngle = 1;
+            const minAngle = 200;
+            const maxAngle = 880;
             const normalizedX = (pointerX - (angleSliderX - angleSliderWidth)) / (angleSliderWidth * 2);
             const angle = Phaser.Math.Linear(minAngle, maxAngle, normalizedX);
             this.angle = angle;
