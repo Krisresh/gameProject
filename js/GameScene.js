@@ -206,13 +206,6 @@ class GameScene extends Phaser.Scene {
             console.log(this.power)
             this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight / 2);
         };
-
-        this.add1000Scores = new Button(this, config.width / 2, 50, "+1000", { font: "30px Arial", fill: "#000000" }, "button_bg");
-
-        this.add1000Scores.buttonBackground.on("pointerdown", () => {
-            this.score += 1000; // Установка ставки на игру равной 100
-            this.updateScore();
-        });
     }
 }
 
