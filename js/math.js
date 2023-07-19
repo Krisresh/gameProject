@@ -55,7 +55,7 @@ class GameMath {
         console.log(this.targets);
 
         if (multiplayer == 0) {
-            if (this.sliders[0] < 0.5) {
+            if (this.sliders[0] > (this.targets.children.entries[0].y + 300) / 2) {
                 this.randNumber = Math.random();
                 this.newX = this.sliders[1];
                 this.newY = (this.targets.children.entries[0].y + ((1920 - this.targets.children.entries[0].y - 500) * this.randNumber));

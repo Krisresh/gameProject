@@ -35,6 +35,7 @@ class GameScene extends Phaser.Scene {
     createObjects() {
         this.targets = this.physics.add.group();
         this.createTargets();
+        console.log(this.targets);
 
         this.windIndicator = new WindIndicator(this, 1010, 70, "arrow_up_down");
 
@@ -63,7 +64,7 @@ class GameScene extends Phaser.Scene {
         this.targetSpacing = 10; // Расстояние между полосами мишеней
 
         this.totalHeight = this.targetCount * (this.targetHeight + this.targetSpacing) - this.targetSpacing;
-        this.startY = (config.height - this.totalHeight) / 2; // Начальная позиция по Y
+        this.startY = (config.height - this.totalHeight) / 1.7; // Начальная позиция по Y
 
         for (let i = 0; i < this.targetCount; i++) {
             this.targetY = this.startY - i * (this.targetHeight + this.targetSpacing);
@@ -103,6 +104,12 @@ class GameScene extends Phaser.Scene {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
         this.windIndicator.changeIndicator("arrow_up_down");
         this.gameIsEnd = true;
+
+        this.offset = Phaser.Math.Between(710, 910);
+        for (let i = 0; i < 5; i++) {
+            this.targets.children.entries[i].setRandomOffset(this.offset);
+            this.offset -= 110;
+        }
     }
 
     createScore() {
@@ -223,6 +230,11 @@ class Target extends Phaser.GameObjects.Graphics {
 
         this.scene.add.existing(this);
         this.multiplayerText = scene.add.text(this.x - 500, this.y - 40, this.multiplayer + "X", { font: "80px Arial", fill: "#000000" });
+    }
+
+    setRandomOffset(offset) {
+        this.y = offset;
+        this.multiplayerText.y = offset - 40;
     }
 }
 
