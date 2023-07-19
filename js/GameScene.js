@@ -43,6 +43,8 @@ class GameScene extends Phaser.Scene {
         this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
 
+        this.gameIsEnd = true;
+
         this.velocityX = null;
         this.velocityY = 5000;
         this.power = null;
@@ -73,6 +75,7 @@ class GameScene extends Phaser.Scene {
 
     startGame() {
         this.gameIsStart = true;
+        this.gameIsEnd = false;
 
         this.math.scoresWhenStart(this.bet);
         this.updateScore();
@@ -99,6 +102,7 @@ class GameScene extends Phaser.Scene {
     restartGame() {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
         this.windIndicator.changeIndicator("arrow_up_down");
+        this.gameIsEnd = true;
     }
 
     createScore() {
@@ -122,7 +126,7 @@ class GameScene extends Phaser.Scene {
         this.buttonStart = new Button(this, 300, config.height - 300, "ST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonStart.buttonBackground.on("pointerdown", () => {
-            if (!this.gameIsStart) {
+            if (!this.gameIsStart && this.gameIsEnd) {
                 this.startGame();
                 this.math.getSlidersValues();
             }
