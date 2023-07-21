@@ -28,8 +28,8 @@ class GameScene extends Phaser.Scene {
         // this.createScore();
 
         this.isLaunching = false;
-        this.input.on("pointerdown", this.startLaunch, this);
-        this.input.on("pointerup", this.launchBall, this);
+        this.firstBall.on("pointerdown", this.startLaunch, this);
+        this.firstBall.on("pointerup", this.launchBall, this);
 
         this.launchIndicator = this.add.graphics();
     }
