@@ -19,13 +19,18 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createObjects();
         this.createControlButtons();
-        this.createBetText();
+        // this.createBetText();
 
         this.math = new GameMath();
         this.math.randomiseMultiplyer();
 
-        this.math.createScores();
-        this.createScore();
+        // this.math.createScores();
+        // this.createScore();
+
+        // Set up the launch mechanism
+        this.isLaunching = false;
+        this.input.on("pointerdown", this.startLaunch, this);
+        this.input.on("pointerup", this.launchBall, this);
     }
 
     createBackground() {
@@ -33,29 +38,105 @@ class GameScene extends Phaser.Scene {
     }
 
     createObjects() {
-        this.targets = this.physics.add.group();
-        this.createTargets();
-        console.log(this.targets);
+        // this.targets = this.physics.add.group();
+        // this.createTargets();
+        // console.log(this.targets);
 
-        this.windIndicator = new WindIndicator(this, 1010, 70, "arrow_up_down");
+        // this.windIndicator = new WindIndicator(this, 1010, 70, "arrow_up_down");
 
         this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(false);
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
+        this.firstBall.setInteractive();
 
-        this.gameIsEnd = true;
+        this.input.setDraggable(this.firstBall);
 
-        this.velocityX = null;
-        this.velocityY = 5000;
-        this.power = null;
-        this.gameIsStart = false;
-        this.isFullStop = true;
-        this.wind = {
-            direction: null,
-            strength: null
-        };
+        // Add the pointer drag event
+        this.input.on("dragstart", (pointer, gameObject) => {
+            gameObject.setAcceleration(0, 0);
+        });
+
+        this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        });
+
+        this.input.on("dragend", (pointer, gameObject, dropped) => {
+            if (dropped) {
+                // Calculate the velocity based on the drag distance
+                const velocityX = gameObject.x - pointer.x;
+                const velocityY = gameObject.y - pointer.y;
+
+                // Set the velocity to launch the ball in the opposite direction
+                gameObject.setVelocity(velocityX, velocityY);
+
+                // Reset the ball position
+                gameObject.setPosition(config.width / 2, config.height - 300);
+            }
+        });
     }
+
+    startLaunch(pointer) {
+        if (!this.isLaunching && !this.gameIsEnd) {
+            // Start the launch mechanism
+            this.isLaunching = true;
+            this.startX = pointer.x;
+            this.startY = pointer.y;
+
+            // Create a visual indicator for the launch
+            this.launchIndicator = this.add.graphics();
+        }
+    }
+
+    launchBall(pointer) {
+        if (this.isLaunching) {
+            // Calculate the launch velocity based on the distance dragged
+            const launchPower = 10; // Adjust this value to control the launch power
+            const velocityX = (this.startX - pointer.x) * launchPower;
+            const velocityY = (this.startY - pointer.y) * launchPower;
+
+            // Launch the ball
+            this.firstBall.setVelocity(velocityX, velocityY);
+
+            // Clean up the launch indicator and reset the launch mechanism
+            this.launchIndicator.clear();
+            this.isLaunching = false;
+        }
+    }
+
+    update() {
+        if (this.isLaunching) {
+            // Update the launch indicator while the user is dragging
+            this.launchIndicator.clear();
+            this.launchIndicator.lineStyle(2, 0xffffff);
+            this.launchIndicator.moveTo(this.firstBall.x, this.firstBall.y);
+            this.launchIndicator.lineTo(this.input.x, this.input.y);
+        }
+
+        // Apply damping effect to slow down the ball until it stops
+        const dampingFactor = 0.98; // Adjust this value to control damping strength
+        if (!this.isLaunching && this.firstBall.body) {
+            this.firstBall.setVelocity(
+                this.firstBall.body.velocity.x * dampingFactor,
+                this.firstBall.body.velocity.y * dampingFactor
+            );
+
+            // Stop the ball when its velocity is very low
+            const minVelocityThreshold = 5;
+            if (
+                Math.abs(this.firstBall.body.velocity.x) < minVelocityThreshold &&
+                Math.abs(this.firstBall.body.velocity.y) < minVelocityThreshold
+            ) {
+                this.firstBall.setVelocity(0, 0);
+                // If the ball is stopped, reset the game
+                if (this.firstBall.y > config.height) {
+                    this.restartGame();
+                }
+            }
+        }
+    }
+
 
     createTargets() {
         this.targetWidth = config.width; // Ширина каждой полосы мишени
@@ -75,70 +156,31 @@ class GameScene extends Phaser.Scene {
     }
 
     startGame() {
-        this.gameIsStart = true;
-        this.gameIsEnd = false;
 
-        this.math.scoresWhenStart(this.bet);
-        this.updateScore();
-
-        this.multiplayer = this.math.randomiseMultiplyer();
-
-        this.sliderValues = this.math.getSlidersValues(this.power, this.angle);
-        this.newParametrs = this.math.calculateCoord(this.multiplayer, this.targets, this.sliderValues, this.bet);
-        this.windIndicator.changeIndicator(this.newParametrs[2]);
-
-        this.tweens.add({
-            targets: this.firstBall,
-            x: this.newParametrs[0],
-            y: this.newParametrs[1],
-            duration: 1000,
-            ease: Phaser.Math.Easing.Quadratic.Out,
-            onComplete: () => {
-                this.updateScore();
-                this.gameIsStart = false;
-            }
-        });
     }
 
     restartGame() {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
-        this.windIndicator.changeIndicator("arrow_up_down");
         this.gameIsEnd = true;
-
-        this.offset = Phaser.Math.Between(710, 910);
-        for (let i = 0; i < 5; i++) {
-            this.targets.children.entries[i].setRandomOffset(this.offset);
-            this.offset -= 110;
-        }
     }
 
-    createScore() {
-        this.scoreText = this.add.text(20, 10, `Score: ${this.math.getScores()}`, { font: "50px Arial", fill: "#ffffff" });
-    }
+    // createScore() {
+    //     this.scoreText = this.add.text(20, 10, `Score: ${this.math.getScores()}`, { font: "50px Arial", fill: "#ffffff" });
+    // }
 
-    updateScore() {
-        this.scoreText.setText(`Score: ${this.math.getScores()}`);
-    }
+    // updateScore() {
+    //     this.scoreText.setText(`Score: ${this.math.getScores()}`);
+    // }
 
-    createBetText() {
-        this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
-    }
+    // createBetText() {
+    //     this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
+    // }
 
-    updateBetText() {
-        this.betText.setText(`Bet: ${this.bet}`);
-    }
+    // updateBetText() {
+    //     this.betText.setText(`Bet: ${this.bet}`);
+    // }
 
     createControlButtons() {
-        //кноки управления игрой
-        this.buttonStart = new Button(this, 300, config.height - 300, "ST", { font: "40px Arial", fill: "#000000" }, "button_bg");
-
-        this.buttonStart.buttonBackground.on("pointerdown", () => {
-            if (!this.gameIsStart && this.gameIsEnd) {
-                this.startGame();
-                this.math.getSlidersValues();
-            }
-        });
-
         this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonRetart.buttonBackground.on("pointerdown", () => {
@@ -146,66 +188,6 @@ class GameScene extends Phaser.Scene {
                 this.restartGame();
             }
         });
-
-        //кнопки угла
-
-        const angleSliderWidth = 440;
-        const angleSliderHeight = 20;
-        const angleSliderX = config.width / 2;
-        const angleSliderY = config.height - 100;
-        this.angle = 1080 / 2;
-
-        this.angleSlider = this.add.rectangle(angleSliderX, angleSliderY, angleSliderWidth * 2, 100, 0xffffff).setInteractive()
-            .on("pointerdown", (pointer) => {
-                this.updateAngleSlider(pointer.x);
-            })
-            .on("pointermove", (pointer) => {
-                if (pointer.isDown) {
-                    this.updateAngleSlider(pointer.x);
-                }
-            });
-
-        this.angleSliderThumb = this.add.image(angleSliderX, angleSliderY, "slider_thumb").setOrigin(0.5);
-
-        this.updateAngleSlider = (pointerX) => {
-            const minAngle = 200;
-            const maxAngle = 880;
-            const normalizedX = (pointerX - (angleSliderX - angleSliderWidth)) / (angleSliderWidth * 2);
-            const angle = Phaser.Math.Linear(minAngle, maxAngle, normalizedX);
-            this.angle = angle;
-            console.log(this.angle);
-            this.angleSliderThumb.x = Phaser.Math.Clamp(pointerX, angleSliderX - angleSliderWidth, angleSliderX + angleSliderWidth);
-        };
-
-        // Create power slider
-        const powerSliderWidth = 100;
-        const powerSliderHeight = 500;
-        const powerSliderX = 1000;
-        const powerSliderY = config.height - 500;
-        this.power = (this.targets.children.entries[0].y + 300) / 2;
-
-        this.powerSlider = this.add.rectangle(powerSliderX, powerSliderY, powerSliderWidth, powerSliderHeight, 0xffffff)
-            .setInteractive()
-            .on("pointerdown", (pointer) => {
-                this.updatePowerSlider(pointer.y);
-            })
-            .on("pointermove", (pointer) => {
-                if (pointer.isDown) {
-                    this.updatePowerSlider(pointer.y);
-                }
-            });
-
-        this.powerSliderThumb = this.add.image(powerSliderX, powerSliderY, "slider_thumb_vertical").setOrigin(0.5);
-
-        this.updatePowerSlider = (pointerY) => {
-            const minPower = this.targets.children.entries[0].y + 300;
-            const maxPower = 0;
-            const normalizedY = 1 - ((pointerY - (powerSliderY - powerSliderHeight / 2)) / (powerSliderHeight));
-            const power = Phaser.Math.Linear(minPower, maxPower, normalizedY);
-            this.power = power;
-            console.log(this.power)
-            this.powerSliderThumb.y = Phaser.Math.Clamp(pointerY, powerSliderY - powerSliderHeight, powerSliderY + powerSliderHeight / 2);
-        };
     }
 }
 
