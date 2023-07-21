@@ -27,10 +27,11 @@ class GameScene extends Phaser.Scene {
         // this.math.createScores();
         // this.createScore();
 
-        // Set up the launch mechanism
         this.isLaunching = false;
         this.input.on("pointerdown", this.startLaunch, this);
         this.input.on("pointerup", this.launchBall, this);
+
+        this.launchIndicator = this.add.graphics();
     }
 
     createBackground() {
@@ -44,6 +45,8 @@ class GameScene extends Phaser.Scene {
 
         // this.windIndicator = new WindIndicator(this, 1010, 70, "arrow_up_down");
 
+        this.gameIsEnd = true;
+
         this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(false);
         this.firstBall.setAcceleration(0, 0);
         this.physics.world.enable(this.firstBall);
@@ -52,7 +55,6 @@ class GameScene extends Phaser.Scene {
 
         this.input.setDraggable(this.firstBall);
 
-        // Add the pointer drag event
         this.input.on("dragstart", (pointer, gameObject) => {
             gameObject.setAcceleration(0, 0);
         });
@@ -64,72 +66,68 @@ class GameScene extends Phaser.Scene {
 
         this.input.on("dragend", (pointer, gameObject, dropped) => {
             if (dropped) {
-                // Calculate the velocity based on the drag distance
                 const velocityX = gameObject.x - pointer.x;
                 const velocityY = gameObject.y - pointer.y;
 
-                // Set the velocity to launch the ball in the opposite direction
                 gameObject.setVelocity(velocityX, velocityY);
 
-                // Reset the ball position
                 gameObject.setPosition(config.width / 2, config.height - 300);
             }
         });
     }
 
     startLaunch(pointer) {
-        if (!this.isLaunching && !this.gameIsEnd) {
-            // Start the launch mechanism
+        const upperBoundary = config.height - 350;
+        if (!this.isLaunching && this.gameIsEnd && pointer.y > upperBoundary) {
             this.isLaunching = true;
             this.startX = pointer.x;
             this.startY = pointer.y;
 
-            // Create a visual indicator for the launch
-            this.launchIndicator = this.add.graphics();
+            this.launchIndicator.clear();
+            this.launchIndicator.lineStyle(2, 0xffffff);
+            this.launchIndicator.moveTo(this.firstBall.x, this.firstBall.y);
+            this.launchIndicator.lineTo(pointer.x, pointer.y);
         }
     }
 
+
     launchBall(pointer) {
-        if (this.isLaunching) {
-            // Calculate the launch velocity based on the distance dragged
-            const launchPower = 10; // Adjust this value to control the launch power
+        const upperBoundary = config.height - 350;
+        if (this.isLaunching && pointer.y > upperBoundary) {
+            const launchPower = 10;
             const velocityX = (this.startX - pointer.x) * launchPower;
             const velocityY = (this.startY - pointer.y) * launchPower;
 
-            // Launch the ball
             this.firstBall.setVelocity(velocityX, velocityY);
 
-            // Clean up the launch indicator and reset the launch mechanism
             this.launchIndicator.clear();
             this.isLaunching = false;
+        } else {
+            this.firstBall.setPosition(config.width / 2, config.height - 300);
         }
     }
 
     update() {
         if (this.isLaunching) {
-            // Update the launch indicator while the user is dragging
             this.launchIndicator.clear();
             this.launchIndicator.lineStyle(2, 0xffffff);
             this.launchIndicator.moveTo(this.firstBall.x, this.firstBall.y);
             this.launchIndicator.lineTo(this.input.x, this.input.y);
         }
 
-        // Apply damping effect to slow down the ball until it stops
-        const dampingFactor = 0.98; // Adjust this value to control damping strength
+        const dampingFactor = 0.98;
         if (!this.isLaunching && this.firstBall.body) {
             this.firstBall.setVelocity(
                 this.firstBall.body.velocity.x * dampingFactor,
                 this.firstBall.body.velocity.y * dampingFactor
             );
 
-            // Stop the ball when its velocity is very low
             const minVelocityThreshold = 5;
             if (
                 Math.abs(this.firstBall.body.velocity.x) < minVelocityThreshold &&
                 Math.abs(this.firstBall.body.velocity.y) < minVelocityThreshold
             ) {
                 this.firstBall.setVelocity(0, 0);
-                // If the ball is stopped, reset the game
                 if (this.firstBall.y > config.height) {
                     this.restartGame();
                 }
