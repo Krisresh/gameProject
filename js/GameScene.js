@@ -90,7 +90,6 @@ class GameScene extends Phaser.Scene {
         }
     }
 
-
     launchBall(pointer) {
         const upperBoundary = config.height - 350;
         if (this.isLaunching && pointer.y > upperBoundary) {
@@ -135,7 +134,6 @@ class GameScene extends Phaser.Scene {
         }
     }
 
-
     createTargets() {
         this.targetWidth = config.width; // Ширина каждой полосы мишени
         this.targetHeight = 100;
@@ -159,6 +157,7 @@ class GameScene extends Phaser.Scene {
 
     restartGame() {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
+        this.firstBall.setVelocity(0);
         this.gameIsEnd = true;
     }
 
