@@ -26,7 +26,11 @@ class GameScene extends Phaser.Scene {
 
         // this.math.createScores();
         // this.createScore();
+        this.CreateLaunching();        
+        
+    }
 
+    CreateLaunching(){
         this.isLaunching = false;
         this.firstBall.on("pointerdown", this.startLaunch, this);
         this.firstBall.on("pointerup", this.launchBall, this);
@@ -185,6 +189,12 @@ class GameScene extends Phaser.Scene {
                 this.restartGame();
             }
         });
+    }
+}
+
+class FirstBall{
+    constructor() {
+        // super();
     }
 }
 
