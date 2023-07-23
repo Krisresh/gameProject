@@ -192,10 +192,8 @@ class GameScene extends Phaser.Scene {
     }
 }
 
-class FirstBall{
-    constructor() {
-        // super();
-    }
+class Ball{
+
 }
 
 class Target extends Phaser.GameObjects.Graphics {
