@@ -2,11 +2,16 @@ class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
         this.bet = 100;
+        this.chipStartPositionX = config.width / 2;
+        this.chipStartPositionY = config.height - 300;
+        this.upperBoundary = this.chipStartPositionY - 50;
+        this.isLaunching = false;
+        this.gameIsEnd = true;
     }
 
-    chipStartPositionX = config.width / 2;
-    chipStartPositionY = config.height - 300;
-    upperBoundary = this.chipStartPositionY - 50;
+    // chipStartPositionX = config.width / 2;
+    // chipStartPositionY = config.height - 300;
+    // upperBoundary = this.chipStartPositionY - 50;
 
     preload() {
         this.load.image("bg", "assets/background.jpg");
@@ -29,7 +34,7 @@ class GameScene extends Phaser.Scene {
     }
 
     createObjects() {
-        this.gameIsEnd = true;
+        //this.gameIsEnd = true;
 
         this.firstBall = this.physics.add.image(this.chipStartPositionX, this.chipStartPositionY, "ball");
         this.firstBall.setVelocity(0, 0);
@@ -60,13 +65,13 @@ class GameScene extends Phaser.Scene {
                 const velocityY = gameObject.y - pointer.y;
 
                 gameObject.setVelocity(velocityX, velocityY + 2000);
-                gameObject.setPosition(config.width / 2, config.height - 300);
+                gameObject.setPosition(this.chipStartPositionX, this.chipStartPositionY);
             }
         });
     }
 
     createControlButtons() {
-        this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
+        this.buttonRetart = new Button(this, 780, this.chipStartPositionY, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
 
         this.buttonRetart.buttonBackground.on("pointerdown", () => {
             if (!this.gameIsStart) {
@@ -103,9 +108,9 @@ class GameScene extends Phaser.Scene {
             this.gameIsEnd = false;
             this.launchIndicator.clear();
             this.isLaunching = false;
-        } else {
-            this.firstBall.setPosition(config.width / 2, config.height - 300);
-        }
+         }// else if (this.gameIsEnd) {
+        //     this.firstBall.setPosition(this.chipStartPositionX, this.chipStartPositionY);
+        // }
     }
 
     update() {
@@ -134,7 +139,7 @@ class GameScene extends Phaser.Scene {
     }
 
     restartGame() {
-        this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
+        this.firstBall.setVelocity(0, 0).setPosition(this.chipStartPositionX, this.chipStartPositionY);
         this.firstBall.setVelocity(0);
         this.gameIsEnd = true;
     }
