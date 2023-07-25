@@ -4,6 +4,10 @@ class GameScene extends Phaser.Scene {
         this.bet = 100;
     }
 
+    chipStartPositionX = config.width / 2;
+    chipStartPositionY = config.height - 300;
+    upperBoundary = this.chipStartPositionY - 50;
+
     preload() {
         this.load.image("bg", "assets/background.jpg");
         this.load.image("ball", "assets/ball.png");
@@ -17,15 +21,7 @@ class GameScene extends Phaser.Scene {
 
         this.math = new GameMath();
         this.math.randomiseMultiplyer();
-        this.CreateLaunching();
-    }
-
-    CreateLaunching() {
-        this.isLaunching = false;
-        this.firstBall.on("pointerdown", this.startLaunch, this);
-        this.firstBall.on("pointerup", this.launchBall, this);
-
-        this.launchIndicator = this.add.graphics();
+        this.createLaunching();
     }
 
     createBackground() {
@@ -35,21 +31,27 @@ class GameScene extends Phaser.Scene {
     createObjects() {
         this.gameIsEnd = true;
 
-        this.firstBall = this.physics.add.image(config.width / 2, config.height - 300, "ball").setVelocity(0, 0).setBounce(1, 1).setCollideWorldBounds(false);
+        this.firstBall = this.physics.add.image(this.chipStartPositionX, this.chipStartPositionY, "ball");
+        this.firstBall.setVelocity(0, 0);
+        this.firstBall.setBounce(1, 1);
+        this.firstBall.setCollideWorldBounds(false)
         this.firstBall.setAcceleration(0, 0);
-        this.physics.world.enable(this.firstBall);
         this.firstBall.setScale(0.5);
         this.firstBall.setInteractive();
+
+        // this.physics.world.enable(this.firstBall);
 
         this.input.setDraggable(this.firstBall);
 
         this.input.on("dragstart", (pointer, gameObject) => {
-            gameObject.setAcceleration(0, 0);
+            if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
         });
 
         this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
-            gameObject.x = dragX;
-            gameObject.y = dragY;
+            if (this.gameIsEnd) {
+                gameObject.x = dragX;
+                gameObject.y = dragY;
+            }
         });
 
         this.input.on("dragend", (pointer, gameObject, dropped) => {
@@ -57,16 +59,33 @@ class GameScene extends Phaser.Scene {
                 const velocityX = gameObject.x - pointer.x;
                 const velocityY = gameObject.y - pointer.y;
 
-                gameObject.setVelocity(velocityX, velocityY);
-
+                gameObject.setVelocity(velocityX, velocityY + 2000);
                 gameObject.setPosition(config.width / 2, config.height - 300);
             }
         });
     }
 
+    createControlButtons() {
+        this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
+
+        this.buttonRetart.buttonBackground.on("pointerdown", () => {
+            if (!this.gameIsStart) {
+                this.restartGame();
+            }
+        });
+    }
+
+    createLaunching() {
+        this.isLaunching = false;
+        this.firstBall.on("pointerdown", this.startLaunch, this);
+        this.firstBall.on("pointerup", this.launchBall, this);
+
+        this.launchIndicator = this.add.graphics();
+    }
+
     startLaunch(pointer) {
-        const upperBoundary = config.height - 350;
-        if (!this.isLaunching && this.gameIsEnd && pointer.y > upperBoundary) {
+        if (!this.isLaunching && this.gameIsEnd && pointer.y > this.upperBoundary) {
+            console.log(this.gameIsEnd)
             this.isLaunching = true;
             this.startX = pointer.x;
             this.startY = pointer.y;
@@ -74,14 +93,14 @@ class GameScene extends Phaser.Scene {
     }
 
     launchBall(pointer) {
-        const upperBoundary = config.height - 350;
-        if (this.isLaunching && pointer.y > upperBoundary) {
+        if (this.isLaunching && this.gameIsEnd && pointer.y > this.upperBoundary) {
             const launchPower = 10;
             const velocityX = (this.startX - pointer.x) * launchPower;
             const velocityY = (this.startY - pointer.y) * launchPower;
 
             this.firstBall.setVelocity(velocityX, velocityY);
 
+            this.gameIsEnd = false;
             this.launchIndicator.clear();
             this.isLaunching = false;
         } else {
@@ -96,6 +115,10 @@ class GameScene extends Phaser.Scene {
                 this.firstBall.body.velocity.x * dampingFactor,
                 this.firstBall.body.velocity.y * dampingFactor
             );
+
+            if (this.gameIsEnd) {
+                console.log("1111111111111111111")
+            }
 
             const minVelocityThreshold = 5;
             if (
@@ -114,16 +137,6 @@ class GameScene extends Phaser.Scene {
         this.firstBall.setVelocity(0, 0).setPosition(config.width / 2, config.height - 300);
         this.firstBall.setVelocity(0);
         this.gameIsEnd = true;
-    }
-
-    createControlButtons() {
-        this.buttonRetart = new Button(this, 780, config.height - 300, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
-
-        this.buttonRetart.buttonBackground.on("pointerdown", () => {
-            if (!this.gameIsStart) {
-                this.restartGame();
-            }
-        });
     }
 }
 
