@@ -9,10 +9,6 @@ class GameScene extends Phaser.Scene {
         this.gameIsEnd = true;
     }
 
-    // chipStartPositionX = config.width / 2;
-    // chipStartPositionY = config.height - 300;
-    // upperBoundary = this.chipStartPositionY - 50;
-
     preload() {
         this.load.image("bg", "assets/background.jpg");
         this.load.image("ball", "assets/ball.png");
@@ -34,8 +30,6 @@ class GameScene extends Phaser.Scene {
     }
 
     createObjects() {
-        //this.gameIsEnd = true;
-
         this.firstBall = this.physics.add.image(this.chipStartPositionX, this.chipStartPositionY, "ball");
         this.firstBall.setVelocity(0, 0);
         this.firstBall.setBounce(1, 1);
@@ -43,8 +37,6 @@ class GameScene extends Phaser.Scene {
         this.firstBall.setAcceleration(0, 0);
         this.firstBall.setScale(0.5);
         this.firstBall.setInteractive();
-
-        // this.physics.world.enable(this.firstBall);
 
         this.input.setDraggable(this.firstBall);
 
@@ -81,7 +73,6 @@ class GameScene extends Phaser.Scene {
     }
 
     createLaunching() {
-        this.isLaunching = false;
         this.firstBall.on("pointerdown", this.startLaunch, this);
         this.firstBall.on("pointerup", this.launchBall, this);
 
@@ -108,9 +99,7 @@ class GameScene extends Phaser.Scene {
             this.gameIsEnd = false;
             this.launchIndicator.clear();
             this.isLaunching = false;
-         }// else if (this.gameIsEnd) {
-        //     this.firstBall.setPosition(this.chipStartPositionX, this.chipStartPositionY);
-        // }
+        }
     }
 
     update() {
@@ -120,10 +109,6 @@ class GameScene extends Phaser.Scene {
                 this.firstBall.body.velocity.x * dampingFactor,
                 this.firstBall.body.velocity.y * dampingFactor
             );
-
-            if (this.gameIsEnd) {
-                console.log("1111111111111111111")
-            }
 
             const minVelocityThreshold = 5;
             if (
