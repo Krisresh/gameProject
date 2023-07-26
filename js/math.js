@@ -9,7 +9,7 @@ class GameMath {
 
     randomiseTargetsMultiplayers(targetsCount) {
         this.targetsMultiplayers = [];
-        for (i = 0; i < targetsCount; i++) {
+        for (let i = 0; i < targetsCount; i++) {
             this.targetsMultiplayers[i] = this.randomiseMultiplyer();
         }
         return this.targetsMultiplayers;

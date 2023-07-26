@@ -7,6 +7,7 @@ class GameScene extends Phaser.Scene {
         this.upperBoundary = this.chipStartPositionY - 50;
         this.isLaunching = false;
         this.gameIsEnd = true;
+        this.targetsCount = 5;
     }
 
     preload() {
@@ -24,6 +25,7 @@ class GameScene extends Phaser.Scene {
         this.math = new GameMath();
 
         this.createLaunching();
+        this.createTargets();
     }
 
     createBackground() {
@@ -71,6 +73,14 @@ class GameScene extends Phaser.Scene {
                 this.restartGame();
             }
         });
+    }
+
+    createTargets() {
+        this.targets = this.physics.add.group();
+        this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
+        // for (i = 0; i < this.targetsCount; i++) {
+        console.log(this.multipayers)
+            // }
     }
 
     createLaunching() {
@@ -189,24 +199,18 @@ class Wind {
 }
 
 class Target extends Phaser.GameObjects.Graphics {
-    constructor(scene, x, y, width, height, color, multiplayer) {
-        super(scene, x, y);
+    constructor(scene, x, y, diameter, color, multiplayer) {
+        super(scene, { x: x, y: y });
 
         this.x = x;
         this.y = y;
         this.multiplayer = multiplayer;
 
         this.fillStyle(color);
-        this.fillRect(-width / 2, -height / 2, width, height);
-
+        this.fillCircle(0, 0, diameter / 2);
 
         this.scene.add.existing(this);
-        this.multiplayerText = scene.add.text(this.x - 500, this.y - 40, this.multiplayer + "X", { font: "80px Arial", fill: "#000000" });
-    }
-
-    setRandomOffset(offset) {
-        this.y = offset;
-        this.multiplayerText.y = offset - 40;
+        this.multiplayerText = scene.add.text(this.x, this.y, this.multiplayer + "X", { font: "80px Arial", fill: "#000000" });
     }
 }
 
