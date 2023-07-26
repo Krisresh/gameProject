@@ -17,13 +17,12 @@ class GameScene extends Phaser.Scene {
 
     create() {
         this.createBackground();
-        this.createObjects();
+        this.createChip();
         this.createControlButtons();
 
         this.wind = new Wind(this);
-
         this.math = new GameMath();
-        this.math.randomiseMultiplyer();
+
         this.createLaunching();
     }
 
@@ -31,16 +30,16 @@ class GameScene extends Phaser.Scene {
         this.add.image(0, 0, "bg").setOrigin(0);
     }
 
-    createObjects() {
-        this.firstBall = this.physics.add.image(this.chipStartPositionX, this.chipStartPositionY, "ball");
-        this.firstBall.setVelocity(0, 0);
-        this.firstBall.setBounce(1, 1);
-        this.firstBall.setCollideWorldBounds(false)
-        this.firstBall.setAcceleration(0, 0);
-        this.firstBall.setScale(0.5);
-        this.firstBall.setInteractive();
+    createChip() {
+        this.chip = this.physics.add.image(this.chipStartPositionX, this.chipStartPositionY, "ball");
+        this.chip.setVelocity(0, 0);
+        this.chip.setBounce(1, 1);
+        this.chip.setCollideWorldBounds(false)
+        this.chip.setAcceleration(0, 0);
+        this.chip.setScale(0.5);
+        this.chip.setInteractive();
 
-        this.input.setDraggable(this.firstBall);
+        this.input.setDraggable(this.chip);
 
         this.input.on("dragstart", (pointer, gameObject) => {
             if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
@@ -75,8 +74,8 @@ class GameScene extends Phaser.Scene {
     }
 
     createLaunching() {
-        this.firstBall.on("pointerdown", this.startLaunch, this);
-        this.firstBall.on("pointerup", this.launchBall, this);
+        this.chip.on("pointerdown", this.startLaunch, this);
+        this.chip.on("pointerup", this.launchBall, this);
 
         this.launchIndicator = this.add.graphics();
     }
@@ -96,7 +95,7 @@ class GameScene extends Phaser.Scene {
             const velocityX = (this.startX - pointer.x) * launchPower;
             const velocityY = (this.startY - pointer.y) * launchPower;
 
-            this.firstBall.setVelocity(velocityX, velocityY);
+            this.chip.setVelocity(velocityX, velocityY);
 
             this.gameIsEnd = false;
             this.launchIndicator.clear();
@@ -108,26 +107,26 @@ class GameScene extends Phaser.Scene {
 
     update() {
         const dampingFactor = 0.98;
-        if (!this.isLaunching && this.firstBall.body) {
-            this.firstBall.setVelocity(
-                this.firstBall.body.velocity.x * dampingFactor,
-                this.firstBall.body.velocity.y * dampingFactor
+        if (!this.isLaunching && this.chip.body) {
+            this.chip.setVelocity(
+                this.chip.body.velocity.x * dampingFactor,
+                this.chip.body.velocity.y * dampingFactor
             );
             const tolerance = 5;
 
-            if (Math.abs(this.firstBall.body.velocity.x) <= Math.abs(this.firstBall.body.acceleration.x) + tolerance &&
-                Math.abs(this.firstBall.body.velocity.y) <= Math.abs(this.firstBall.body.acceleration.y) + tolerance) {
-                this.firstBall.body.setAcceleration(0, 0);
+            if (Math.abs(this.chip.body.velocity.x) <= Math.abs(this.chip.body.acceleration.x) + tolerance &&
+                Math.abs(this.chip.body.velocity.y) <= Math.abs(this.chip.body.acceleration.y) + tolerance) {
+                this.chip.body.setAcceleration(0, 0);
                 this.wind.stopBlowing();
             }
 
             const minVelocityThreshold = 10;
             if (
-                Math.abs(this.firstBall.body.velocity.x) < minVelocityThreshold &&
-                Math.abs(this.firstBall.body.velocity.y) < minVelocityThreshold
+                Math.abs(this.chip.body.velocity.x) < minVelocityThreshold &&
+                Math.abs(this.chip.body.velocity.y) < minVelocityThreshold
             ) {
-                this.firstBall.setVelocity(0, 0);
-                if (this.firstBall.y > config.height) {
+                this.chip.setVelocity(0, 0);
+                if (this.chip.y > config.height) {
                     this.restartGame();
                 }
             }
@@ -136,8 +135,8 @@ class GameScene extends Phaser.Scene {
     }
 
     restartGame() {
-        this.firstBall.setVelocity(0, 0).setPosition(this.chipStartPositionX, this.chipStartPositionY);
-        this.firstBall.setVelocity(0);
+        this.chip.setVelocity(0, 0).setPosition(this.chipStartPositionX, this.chipStartPositionY);
+        this.chip.setVelocity(0);
         this.gameIsEnd = true;
         this.events.emit("restartGame");
     }
@@ -184,7 +183,7 @@ class Wind {
         if (this.isBlowing) {
             this.forceX = this.getForceX();
             this.forceY = this.getForceY();
-            this.scene.firstBall.setAcceleration(this.forceX, this.forceY);
+            this.scene.chip.setAcceleration(this.forceX, this.forceY);
         }
     }
 }

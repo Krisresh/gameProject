@@ -7,9 +7,17 @@ class GameMath {
         return randomElement;
     }
 
+    randomiseTargetsMultiplayers(targetsCount) {
+        this.targetsMultiplayers = [];
+        for (i = 0; i < targetsCount; i++) {
+            this.targetsMultiplayers[i] = this.randomiseMultiplyer();
+        }
+        return this.targetsMultiplayers;
+    }
+
     randomiseWind() {
         this.direction = Phaser.Math.Between(0, 359);
-        this.strength = Phaser.Math.Between(150, 200);
+        this.strength = Phaser.Math.Between(50, 150);
         return [this.direction, this.strength]
     }
 }
