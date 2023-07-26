@@ -20,6 +20,8 @@ class GameScene extends Phaser.Scene {
         this.createObjects();
         this.createControlButtons();
 
+        this.wind = new Wind(this);
+
         this.math = new GameMath();
         this.math.randomiseMultiplyer();
         this.createLaunching();
@@ -99,6 +101,8 @@ class GameScene extends Phaser.Scene {
             this.gameIsEnd = false;
             this.launchIndicator.clear();
             this.isLaunching = false;
+
+            this.events.emit("launchBall");
         }
     }
 
@@ -109,8 +113,15 @@ class GameScene extends Phaser.Scene {
                 this.firstBall.body.velocity.x * dampingFactor,
                 this.firstBall.body.velocity.y * dampingFactor
             );
+            const tolerance = 5;
 
-            const minVelocityThreshold = 5;
+            if (Math.abs(this.firstBall.body.velocity.x) <= Math.abs(this.firstBall.body.acceleration.x) + tolerance &&
+                Math.abs(this.firstBall.body.velocity.y) <= Math.abs(this.firstBall.body.acceleration.y) + tolerance) {
+                this.firstBall.body.setAcceleration(0, 0);
+                this.wind.stopBlowing();
+            }
+
+            const minVelocityThreshold = 10;
             if (
                 Math.abs(this.firstBall.body.velocity.x) < minVelocityThreshold &&
                 Math.abs(this.firstBall.body.velocity.y) < minVelocityThreshold
@@ -121,12 +132,59 @@ class GameScene extends Phaser.Scene {
                 }
             }
         }
+        this.wind.update();
     }
 
     restartGame() {
         this.firstBall.setVelocity(0, 0).setPosition(this.chipStartPositionX, this.chipStartPositionY);
         this.firstBall.setVelocity(0);
         this.gameIsEnd = true;
+        this.events.emit("restartGame");
+    }
+}
+
+class Wind {
+    constructor(scene) {
+        this.scene = scene;
+        this.direction = 0; // Wind direction in degrees (0 - 359)
+        this.strength = 0; // Wind strength
+        this.isBlowing = false;
+
+        this.scene.events.on("launchBall", this.startBlowing, this);
+        this.scene.events.on("stopBall", this.stopBlowing, this);
+        this.scene.events.on("restartGame", this.randomizeWind, this);
+    }
+
+    startBlowing() {
+        if (!this.isBlowing) {
+            this.isBlowing = true;
+            this.randomizeWind();
+        }
+    }
+
+    stopBlowing() {
+        this.isBlowing = false;
+    }
+
+    randomizeWind() {
+        this.direction = Phaser.Math.Between(0, 359);
+        this.strength = Phaser.Math.Between(150, 200); // Adjust the range as needed
+    }
+
+    getForceX() {
+        return Math.cos(Phaser.Math.DegToRad(this.direction)) * this.strength;
+    }
+
+    getForceY() {
+        return Math.sin(Phaser.Math.DegToRad(this.direction)) * this.strength;
+    }
+
+    update() {
+        if (this.isBlowing) {
+            this.forceX = this.getForceX();
+            this.forceY = this.getForceY();
+            this.scene.firstBall.setAcceleration(this.forceX, this.forceY);
+        }
     }
 }
 
