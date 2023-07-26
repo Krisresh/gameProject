@@ -167,8 +167,9 @@ class Wind {
     }
 
     randomizeWind() {
-        this.direction = Phaser.Math.Between(0, 359);
-        this.strength = Phaser.Math.Between(150, 200); // Adjust the range as needed
+        this.windParams = this.scene.math.randomiseWind();
+        this.direction = this.windParams[0];
+        this.strength = this.windParams[1];
     }
 
     getForceX() {

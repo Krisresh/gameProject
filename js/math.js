@@ -6,6 +6,12 @@ class GameMath {
         var randomElement = multiplayers[Math.floor(Math.random() * multiplayers.length)];
         return randomElement;
     }
+
+    randomiseWind() {
+        this.direction = Phaser.Math.Between(0, 359);
+        this.strength = Phaser.Math.Between(150, 200);
+        return [this.direction, this.strength]
+    }
 }
 
 window.GameMath = GameMath;
