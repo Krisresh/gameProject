@@ -7,6 +7,8 @@ class GameScene extends Phaser.Scene {
         this.upperBoundary = this.chipStartPositionY - 50;
         this.isLaunching = false;
         this.gameIsEnd = true;
+        this.chipIsFullStop = false;
+        this.gameIsStart = false;
         this.targetsCount = 6;
         this.targetsX = [0, -400, 400, -800, 0, 800];
         this.targetsY = [250, 600, 600, 950, 950, 950];
@@ -23,6 +25,8 @@ class GameScene extends Phaser.Scene {
         this.wind = new Wind(this);
 
         this.createBackground();
+        this.createScoreIndicator();
+        this.createBetTextIndicator();
         this.createTargets();
         this.createChip();
         this.createControlButtons();
@@ -31,6 +35,18 @@ class GameScene extends Phaser.Scene {
 
     createBackground() {
         this.add.image(0, 0, "bg").setOrigin(0);
+    }
+
+    createScoreIndicator() {
+        this.scoreText = this.add.text(20, 10, `Score: ${this.math.getScore()}`, { font: "50px Arial", fill: "#ffffff" });
+    }
+
+    updateScoreIndicator() {
+        this.scoreText.setText(`Score: ${this.math.getScore()}`);
+    }
+
+    createBetTextIndicator() {
+        this.betText = this.add.text(20, 70, `Bet: ${this.bet}`, { font: "50px Arial", fill: "#ffffff" });
     }
 
     createTargets() {
@@ -113,9 +129,30 @@ class GameScene extends Phaser.Scene {
             this.gameIsEnd = false;
             this.launchIndicator.clear();
             this.isLaunching = false;
+            this.chipIsFullStop = false;
+            this.gameIsStart = true;
+
+            this.math.updateScore(-this.bet);
+            this.updateScoreIndicator();
 
             this.events.emit("launchBall");
+        } else {
+            this.chip.setPosition(this.chipStartPositionX, this.chipStartPositionY)
         }
+    }
+
+    checkTargetCollision(chip) {
+        for (let target of this.targets.getChildren()) {
+            const dx = target.x - chip.x;
+            const dy = target.y - chip.y;
+            const distanceSquared = dx * dx + dy * dy;
+            const targetRadiusSquared = (200 / 2) * (200 / 2);
+
+            if (distanceSquared <= targetRadiusSquared) {
+                return target;
+            }
+        }
+        return null;
     }
 
     update() {
@@ -139,18 +176,44 @@ class GameScene extends Phaser.Scene {
                 Math.abs(this.chip.body.velocity.y) < minVelocityThreshold
             ) {
                 this.chip.setVelocity(0, 0);
-                if (this.chip.y > config.height) {
-                    this.restartGame();
+                this.chipIsFullStop = true;
+                const hitTarget = this.checkTargetCollision(this.chip);
+                if (hitTarget && this.gameIsStart) {
+                    // Handle logic for hitting the target (e.g., remove the target or update score)
+                    this.showWin(hitTarget);
+                } else if (this.gameIsStart) {
+                    this.showWin();
                 }
             }
         }
         this.wind.update();
     }
 
+    showWin(target) {
+        if (target) {
+            this.target = target;
+            this.winMultiplayer = this.target.multiplayer;
+
+            this.gameIsStart = false;
+
+            this.winText = this.add.text(config.width / 2, config.height / 2, `${this.bet * this.winMultiplayer}`, { font: "500px Arial", fill: "#ffffff" }).setOrigin(0.5);
+            this.math.updateScore(this.bet * this.winMultiplayer);
+            this.updateScoreIndicator();
+
+            const delayInSeconds = 3;
+            this.time.delayedCall(delayInSeconds * 1000, this.restartGame, [], this);
+        } else {
+            const delayInSeconds = 3;
+            this.time.delayedCall(delayInSeconds * 1000, this.restartGame, [], this);
+        }
+    }
+
     restartGame() {
         this.chip.setVelocity(0, 0).setPosition(this.chipStartPositionX, this.chipStartPositionY);
         this.chip.setVelocity(0);
         this.gameIsEnd = true;
+        this.chipIsFullStop = false;
+        if (this.winText) this.winText.destroy();
         this.events.emit("restartGame");
     }
 }

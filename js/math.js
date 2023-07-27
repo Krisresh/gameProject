@@ -1,5 +1,19 @@
 class GameMath {
-    constructor() {}
+    constructor() {
+        this.createScore();
+    }
+
+    createScore() {
+        this.score = 0;
+    }
+
+    updateScore(scoreModificator) {
+        this.score = this.score + scoreModificator;
+    }
+
+    getScore() {
+        return this.score;
+    }
 
     randomiseMultiplyer() {
         let multiplayers = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1, 1, 1.5, 1.5, 1.5, 2, 2, 2.5];
@@ -17,7 +31,7 @@ class GameMath {
 
     randomiseWind() {
         this.direction = Phaser.Math.Between(0, 359);
-        this.strength = Phaser.Math.Between(100, 200);
+        this.strength = Phaser.Math.Between(0, 0);
         return [this.direction, this.strength]
     }
 }
