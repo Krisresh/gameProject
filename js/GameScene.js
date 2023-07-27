@@ -10,6 +10,9 @@ class GameScene extends Phaser.Scene {
         this.chipIsFullStop = false;
         this.gameIsStart = false;
         this.targetsCount = 6;
+        this.tolerance = 5;
+        this.minVelocityThreshold = 10;
+        this.delayInSeconds = 3;
         this.targetsX = [0, -400, 400, -800, 0, 800];
         this.targetsY = [250, 600, 600, 950, 950, 950];
     }
@@ -162,18 +165,18 @@ class GameScene extends Phaser.Scene {
                 this.chip.body.velocity.x * dampingFactor,
                 this.chip.body.velocity.y * dampingFactor
             );
-            const tolerance = 5;
+            //const tolerance = 5;
 
-            if (Math.abs(this.chip.body.velocity.x) <= Math.abs(this.chip.body.acceleration.x) + tolerance &&
-                Math.abs(this.chip.body.velocity.y) <= Math.abs(this.chip.body.acceleration.y) + tolerance) {
+            if (Math.abs(this.chip.body.velocity.x) <= Math.abs(this.chip.body.acceleration.x) + this.tolerance &&
+                Math.abs(this.chip.body.velocity.y) <= Math.abs(this.chip.body.acceleration.y) + this.tolerance) {
                 this.chip.body.setAcceleration(0, 0);
                 this.wind.stopBlowing();
             }
 
-            const minVelocityThreshold = 10;
+            //const minVelocityThreshold = 10;
             if (
-                Math.abs(this.chip.body.velocity.x) < minVelocityThreshold &&
-                Math.abs(this.chip.body.velocity.y) < minVelocityThreshold
+                Math.abs(this.chip.body.velocity.x) < this.minVelocityThreshold &&
+                Math.abs(this.chip.body.velocity.y) < this.minVelocityThreshold
             ) {
                 this.chip.setVelocity(0, 0);
                 this.chipIsFullStop = true;
@@ -200,11 +203,11 @@ class GameScene extends Phaser.Scene {
             this.math.updateScore(this.bet * this.winMultiplayer);
             this.updateScoreIndicator();
 
-            const delayInSeconds = 3;
-            this.time.delayedCall(delayInSeconds * 1000, this.restartGame, [], this);
+            //const delayInSeconds = 3;
+            this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         } else {
-            const delayInSeconds = 3;
-            this.time.delayedCall(delayInSeconds * 1000, this.restartGame, [], this);
+            //const delayInSeconds = 3;
+            this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame(), [], this);
         }
     }
 
