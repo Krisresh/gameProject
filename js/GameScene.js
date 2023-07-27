@@ -7,7 +7,9 @@ class GameScene extends Phaser.Scene {
         this.upperBoundary = this.chipStartPositionY - 50;
         this.isLaunching = false;
         this.gameIsEnd = true;
-        this.targetsCount = 5;
+        this.targetsCount = 6;
+        this.targetsX = [0, -400, 400, -800, 0, 800];
+        this.targetsY = [250, 600, 600, 950, 950, 950];
     }
 
     preload() {
@@ -17,19 +19,28 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.math = new GameMath();
+        this.wind = new Wind(this);
+
         this.createBackground();
+        this.createTargets();
         this.createChip();
         this.createControlButtons();
-
-        this.wind = new Wind(this);
-        this.math = new GameMath();
-
         this.createLaunching();
-        this.createTargets();
     }
 
     createBackground() {
         this.add.image(0, 0, "bg").setOrigin(0);
+    }
+
+    createTargets() {
+        this.targets = this.physics.add.group();
+        this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
+        for (let i = 0; i < this.targetsCount; i++) {
+            this.color = 0xe8cca5;
+            this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 200, this.color, this.multipayers[i]);
+            this.targets.add(this.target);
+        }
     }
 
     createChip() {
@@ -73,14 +84,6 @@ class GameScene extends Phaser.Scene {
                 this.restartGame();
             }
         });
-    }
-
-    createTargets() {
-        this.targets = this.physics.add.group();
-        this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
-        // for (i = 0; i < this.targetsCount; i++) {
-        console.log(this.multipayers)
-            // }
     }
 
     createLaunching() {
@@ -210,7 +213,7 @@ class Target extends Phaser.GameObjects.Graphics {
         this.fillCircle(0, 0, diameter / 2);
 
         this.scene.add.existing(this);
-        this.multiplayerText = scene.add.text(this.x, this.y, this.multiplayer + "X", { font: "80px Arial", fill: "#000000" });
+        this.multiplayerText = scene.add.text(this.x, this.y - 50, this.multiplayer + "X", { font: "40px Arial", fill: "#000000" }).setOrigin(0.5);
     }
 }
 
