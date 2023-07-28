@@ -4,7 +4,7 @@ class GameScene extends Phaser.Scene {
         this.bet = 100;
         this.chipStartPositionX = config.width / 2;
         this.chipStartPositionY = config.height - 300;
-        this.upperBoundary = this.chipStartPositionY - 50;
+        this.upperBoundary = this.chipStartPositionY;
         this.isLaunching = false;
         this.gameIsEnd = true;
         this.chipIsFullStop = false;
@@ -19,6 +19,7 @@ class GameScene extends Phaser.Scene {
 
     preload() {
         this.load.image("bg", "assets/background.jpg");
+        this.load.image("powerbg", "assets/power_background.jpg");
         this.load.image("ball", "assets/ball.png");
         this.load.image("button_bg", "assets/button_bg.jpg");
         this.load.image("arrow", "assets/arrow.png");
@@ -29,6 +30,7 @@ class GameScene extends Phaser.Scene {
         this.math = new GameMath();
         this.windIndicator = new WindIndicator(this, 960, 120, "arrow");
         this.wind = new Wind(this);
+        this.dragLine = this.add.graphics();
         this.createScoreIndicator();
         this.createBetTextIndicator();
         this.createTargets();
@@ -38,6 +40,7 @@ class GameScene extends Phaser.Scene {
 
     createBackground() {
         this.add.image(0, 0, "bg").setOrigin(0);
+        this.add.image(0, this.chipStartPositionY, "powerbg").setOrigin(0);
     }
 
     createScoreIndicator() {
@@ -56,9 +59,17 @@ class GameScene extends Phaser.Scene {
         this.targets = this.physics.add.group();
         this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
         for (let i = 0; i < this.targetsCount; i++) {
-            this.color = 0xe8cca5;
+            this.color = 0xb9b8b8;
             this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 200, this.color, this.multipayers[i]);
             this.targets.add(this.target);
+            console.log(this.targets)
+        }
+    }
+
+    updateTargets() {
+        this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
+        for (let i = 0; i < this.targetsCount; i++) {
+            this.targets.children.entries[i].updateMultiplayer(this.multipayers[i]);
         }
     }
 
@@ -98,29 +109,31 @@ class GameScene extends Phaser.Scene {
     createLaunching() {
         this.chip.on("pointerdown", this.startLaunch, this);
         this.chip.on("pointerup", this.launchBall, this);
-
-        this.launchIndicator = this.add.graphics();
     }
 
     startLaunch(pointer) {
-        if (!this.isLaunching && this.gameIsEnd && pointer.y > this.upperBoundary) {
+        if (!this.isLaunching && this.gameIsEnd && this.chip.y > this.upperBoundary - 50) {
             console.log(this.gameIsEnd)
             this.isLaunching = true;
             this.startX = pointer.x;
             this.startY = pointer.y;
+            this.isDragging = true;
         }
     }
 
     launchBall(pointer) {
-        if (this.isLaunching && this.gameIsEnd && pointer.y > this.upperBoundary) {
+        if (this.isLaunching && this.gameIsEnd && this.chip.y > this.upperBoundary) {
             const launchPower = 10;
             const velocityX = (this.startX - pointer.x) * launchPower;
             const velocityY = (this.startY - pointer.y) * launchPower;
 
             this.chip.setVelocity(velocityX, velocityY);
 
+            this.isDragging = false;
+            // Очищаем графический объект с линией при отпускании фишки
+            this.dragLine.clear();
+
             this.gameIsEnd = false;
-            this.launchIndicator.clear();
             this.isLaunching = false;
             this.chipIsFullStop = false;
             this.gameIsStart = true;
@@ -151,6 +164,8 @@ class GameScene extends Phaser.Scene {
     update() {
         const dampingFactor = 0.98;
         if (!this.isLaunching && this.chip.body) {
+
+
             this.chip.setVelocity(
                 this.chip.body.velocity.x * dampingFactor,
                 this.chip.body.velocity.y * dampingFactor
@@ -178,6 +193,14 @@ class GameScene extends Phaser.Scene {
                     this.showWin();
                 }
             }
+        } else if (this.isLaunching) {
+            this.dragLine.clear();
+            this.dragLine.lineStyle(10, 0xffffff, 10);
+            this.dragLine.beginPath();
+            this.dragLine.moveTo(this.chipStartPositionX, this.chipStartPositionY);
+            this.dragLine.lineTo(this.chip.x, this.chip.y);
+            this.dragLine.closePath();
+            this.dragLine.strokePath();
         }
         this.wind.update();
     }
@@ -207,6 +230,7 @@ class GameScene extends Phaser.Scene {
         this.chipIsFullStop = false;
         if (this.winText) this.winText.destroy();
         this.events.emit("restartGame");
+        this.updateTargets();
     }
 }
 
@@ -276,6 +300,11 @@ class Target extends Phaser.GameObjects.Graphics {
 
         this.scene.add.existing(this);
         this.multiplayerText = scene.add.text(this.x, this.y - 50, this.multiplayer + "X", { font: "40px Arial", fill: "#000000" }).setOrigin(0.5);
+    }
+
+    updateMultiplayer(multiplayer) {
+        this.multiplayer = multiplayer;
+        this.multiplayerText.setText(this.multiplayer + "X");
     }
 }
 
