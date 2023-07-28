@@ -31,7 +31,7 @@ class GameMath {
 
     randomiseWind() {
         this.direction = Phaser.Math.Between(0, 359);
-        this.strength = Phaser.Math.Between(0, 0);
+        this.strength = Phaser.Math.Between(100, 200);
         return [this.direction, this.strength]
     }
 }

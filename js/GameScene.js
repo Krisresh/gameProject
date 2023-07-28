@@ -21,18 +21,18 @@ class GameScene extends Phaser.Scene {
         this.load.image("bg", "assets/background.jpg");
         this.load.image("ball", "assets/ball.png");
         this.load.image("button_bg", "assets/button_bg.jpg");
+        this.load.image("arrow", "assets/arrow.png");
     }
 
     create() {
-        this.math = new GameMath();
-        this.wind = new Wind(this);
-
         this.createBackground();
+        this.math = new GameMath();
+        this.windIndicator = new WindIndicator(this, 960, 120, "arrow");
+        this.wind = new Wind(this);
         this.createScoreIndicator();
         this.createBetTextIndicator();
         this.createTargets();
         this.createChip();
-        this.createControlButtons();
         this.createLaunching();
     }
 
@@ -91,16 +91,6 @@ class GameScene extends Phaser.Scene {
 
                 gameObject.setVelocity(velocityX, velocityY + 2000);
                 gameObject.setPosition(this.chipStartPositionX, this.chipStartPositionY);
-            }
-        });
-    }
-
-    createControlButtons() {
-        this.buttonRetart = new Button(this, 780, this.chipStartPositionY, "RST", { font: "40px Arial", fill: "#000000" }, "button_bg");
-
-        this.buttonRetart.buttonBackground.on("pointerdown", () => {
-            if (!this.gameIsStart) {
-                this.restartGame();
             }
         });
     }
@@ -203,11 +193,10 @@ class GameScene extends Phaser.Scene {
             this.math.updateScore(this.bet * this.winMultiplayer);
             this.updateScoreIndicator();
 
-            //const delayInSeconds = 3;
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         } else {
-            //const delayInSeconds = 3;
-            this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame(), [], this);
+            this.gameIsStart = false;
+            this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         }
     }
 
@@ -228,15 +217,21 @@ class Wind {
         this.strength = 0; // Wind strength
         this.isBlowing = false;
 
+        this.isFirstGame = true;
+
         this.scene.events.on("launchBall", this.startBlowing, this);
         this.scene.events.on("stopBall", this.stopBlowing, this);
         this.scene.events.on("restartGame", this.randomizeWind, this);
+
+        if (this.isFirstGame) {
+            this.randomizeWind();
+            this.isFirstGame = false;
+        }
     }
 
     startBlowing() {
         if (!this.isBlowing) {
             this.isBlowing = true;
-            this.randomizeWind();
         }
     }
 
@@ -248,6 +243,7 @@ class Wind {
         this.windParams = this.scene.math.randomiseWind();
         this.direction = this.windParams[0];
         this.strength = this.windParams[1];
+        this.scene.windIndicator.updateIndicator(this.windParams[0]);
     }
 
     getForceX() {
@@ -282,6 +278,26 @@ class Target extends Phaser.GameObjects.Graphics {
         this.multiplayerText = scene.add.text(this.x, this.y - 50, this.multiplayer + "X", { font: "40px Arial", fill: "#000000" }).setOrigin(0.5);
     }
 }
+
+class WindIndicator extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, windIndicatorKey) {
+        super(scene, x, y);
+        this.x = x;
+        this.y = y;
+
+        this.windIndicatorImg = scene.add.image(this.x, this.y, windIndicatorKey);
+    }
+
+    updateIndicator(angle) {
+        this.windIndicatorImg.angle = angle;
+    }
+}
+
+////////////////////////////////////////
+////
+////    CLASSES ARCHIVE
+////
+////////////////////////////////////////
 
 class Button extends Phaser.GameObjects.Container {
     constructor(scene, x, y, text, style, backgroundImageKey) {
