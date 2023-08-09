@@ -9,11 +9,11 @@ class GameScene extends Phaser.Scene {
         this.gameIsEnd = true;
         this.gameIsStart = false;
         this.launchPower = 10;
-        this.targetsCount = 6;
+        this.targetsCount = 3;
         this.tolerance = 5;
         this.minVelocityThreshold = 10;
-        this.targetsX = [0, -400, 400, -800, 0, 800];
-        this.targetsY = [250, 600, 600, 950, 950, 950];
+        this.targetsX = [0, -550, 550];
+        this.targetsY = [400, 750, 750];
     }
 
     preload() {
@@ -35,6 +35,7 @@ class GameScene extends Phaser.Scene {
         this.createTargets();
         this.createChip();
         this.createLaunching();
+        this.windStrengthText = this.add.text(20, 130, `Wind Strength: 0`, { font: "50px Arial", fill: "#ffffff" });
     }
 
     createBackground() {
@@ -59,7 +60,7 @@ class GameScene extends Phaser.Scene {
         this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
         for (let i = 0; i < this.targetsCount; i++) {
             this.color = 0xb9b8b8;
-            this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 200, this.color, this.multipayers[i]);
+            this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 300, this.color, this.multipayers[i]);
             this.targets.add(this.target);
         }
     }
@@ -84,6 +85,8 @@ class GameScene extends Phaser.Scene {
 
         this.input.on("dragstart", (pointer, gameObject) => {
             if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
+            this.windStrengthText.setText(`Wind Strength: ${this.wind.strength}`);
+
         });
 
         this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
@@ -95,6 +98,7 @@ class GameScene extends Phaser.Scene {
 
         this.input.on("dragend", (pointer, gameObject, dropped) => {
             if (dropped) {
+                this.windStrengthText.setText('');
                 const velocityX = gameObject.x - pointer.x;
                 const velocityY = gameObject.y - pointer.y;
 
@@ -109,6 +113,10 @@ class GameScene extends Phaser.Scene {
         this.chip.on("pointerup", this.launchBall, this);
 
     }
+
+    // updateWindStrengthText() {
+    //     this.windStrengthText.setText(`Wind Strength: ${this.wind.strength.toFixed(0)}`);
+    // }
 
     startLaunch(pointer) {
         if (!this.isLaunching && this.gameIsEnd && this.chip.y > this.upperBoundary - 50) {
@@ -126,7 +134,6 @@ class GameScene extends Phaser.Scene {
 
             this.chip.setVelocity(velocityX, velocityY);
 
-            this.isDragging = false;
             this.dragLine.clear();
 
             this.gameIsEnd = false;
@@ -147,7 +154,7 @@ class GameScene extends Phaser.Scene {
             const dx = target.x - chip.x;
             const dy = target.y - chip.y;
             const distanceSquared = dx * dx + dy * dy;
-            const targetRadiusSquared = (200 / 2) * (200 / 2);
+            const targetRadiusSquared = (300 / 2) * (300 / 2);
 
             if (distanceSquared <= targetRadiusSquared) {
                 return target;
@@ -262,6 +269,7 @@ class Wind {
         this.direction = this.windParams[0];
         this.strength = this.windParams[1];
         this.scene.windIndicator.updateIndicator(this.windParams[0]);
+
     }
 
     getForceX() {
@@ -277,8 +285,11 @@ class Wind {
             this.forceX = this.getForceX();
             this.forceY = this.getForceY();
             this.scene.chip.setAcceleration(this.forceX, this.forceY);
+            //this.scene.updateWindStrengthText(); // Обновление текстового объекта силы
+
         }
     }
+
 }
 
 class Target extends Phaser.GameObjects.Graphics {
