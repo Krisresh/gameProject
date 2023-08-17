@@ -12,7 +12,7 @@ class GameScene extends Phaser.Scene {
         this.targetsCount = 3;
         this.tolerance = 5;
         this.minVelocityThreshold = 5;
-        this.seconds = 3;
+        this.seconds = 5;
         this.timeOut = this.seconds;
         this.targetsX = [0, -550, 550];
         this.targetsY = [400, 750, 750];
@@ -40,12 +40,10 @@ class GameScene extends Phaser.Scene {
         this.createLaunching();
         this.windStrengthText = this.add.text(20, 130, `Wind: 0`, { font: "50px Arial", fill: "#ffffff" });
         this.createTimerText();
-        //this.startTimer();
-
     }
 
     createTimerText() {
-        this.timerText = this.add.text(config.width / 2, 50, 'Time: ', { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
+        this.timerText = this.add.text(config.width / 2, 50, 'Time: 5', { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
     }
 
     onTimerTick() {
@@ -116,6 +114,7 @@ class GameScene extends Phaser.Scene {
             if (!this.firstChipTaken) {
                 this.firstChipTaken = true;
                 this.startTimer(); // Запуск таймера после первого взятия фишки
+                this.onTimerTick();
             }
             if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
             this.updateWindStrengthText();
