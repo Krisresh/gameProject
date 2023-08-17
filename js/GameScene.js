@@ -11,9 +11,12 @@ class GameScene extends Phaser.Scene {
         this.launchPower = 10;
         this.targetsCount = 3;
         this.tolerance = 5;
-        this.minVelocityThreshold = 10;
+        this.minVelocityThreshold = 5;
+        this.seconds = 3;
+        this.timeOut = this.seconds;
         this.targetsX = [0, -550, 550];
         this.targetsY = [400, 750, 750];
+        this.firstChipTaken = false;
     }
 
     preload() {
@@ -35,7 +38,33 @@ class GameScene extends Phaser.Scene {
         this.createTargets();
         this.createChip();
         this.createLaunching();
-        this.windStrengthText = this.add.text(20, 130, `Wind Strength: 0`, { font: "50px Arial", fill: "#ffffff" });
+        this.windStrengthText = this.add.text(20, 130, `Wind: 0`, { font: "50px Arial", fill: "#ffffff" });
+        this.createTimerText();
+        //this.startTimer();
+
+    }
+
+    createTimerText() {
+        this.timerText = this.add.text(config.width / 2, 50, 'Time: ', { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
+    }
+
+    onTimerTick() {
+        this.timerText.setText("Time: " + this.timeOut);
+        if (this.timeOut <= 0) {
+            this.timerEvent.remove();
+            this.restartGame();
+        } else {
+            --this.timeOut;
+        }
+    }
+
+    startTimer() {
+        this.timerEvent = this.time.addEvent({
+            delay: 1000,
+            callback: this.onTimerTick,
+            callbackScope: this,
+            loop: true //вызов каждую секунду 
+        });
     }
 
     createBackground() {
@@ -84,9 +113,12 @@ class GameScene extends Phaser.Scene {
         this.input.setDraggable(this.chip);
 
         this.input.on("dragstart", (pointer, gameObject) => {
+            if (!this.firstChipTaken) {
+                this.firstChipTaken = true;
+                this.startTimer(); // Запуск таймера после первого взятия фишки
+            }
             if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
-            this.windStrengthText.setText(`Wind Strength: ${this.wind.strength}`);
-
+            this.updateWindStrengthText();
         });
 
         this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
@@ -114,9 +146,9 @@ class GameScene extends Phaser.Scene {
 
     }
 
-    // updateWindStrengthText() {
-    //     this.windStrengthText.setText(`Wind Strength: ${this.wind.strength.toFixed(0)}`);
-    // }
+    updateWindStrengthText() {
+        this.windStrengthText.setText(`Wind: ${this.wind.strength}`);
+    }
 
     startLaunch(pointer) {
         if (!this.isLaunching && this.gameIsEnd && this.chip.y > this.upperBoundary - 50) {
@@ -127,6 +159,10 @@ class GameScene extends Phaser.Scene {
     }
 
     launchBall(pointer) {
+        // if (!this.firstChipTaken) {
+        //     this.firstChipTaken = true;
+        //     this.startTimer(); // Запуск таймера после первого взятия фишки
+        // }
         if (this.isLaunching && this.gameIsEnd && this.chip.y > this.upperBoundary - 50) {
 
             const velocityX = (this.startX - pointer.x) * this.launchPower;
@@ -144,9 +180,15 @@ class GameScene extends Phaser.Scene {
             this.updateScoreIndicator();
 
             this.events.emit("launchBall");
+            this.timeOut = this.seconds; // Сброс времени после взятия фишки
+
         } else if (this.isLaunching) {
             this.chip.setPosition(this.chipStartPositionX, this.chipStartPositionY)
         }
+        // if (this.firstChipTaken && this.timeOut <= 0) {
+        //     this.timeOut = this.seconds;
+        //     this.startTimer(); // Запуск таймера после истечения времени и новом взятии фишки
+        // }
     }
 
     checkTargetCollision(chip) {
@@ -232,6 +274,11 @@ class GameScene extends Phaser.Scene {
         if (this.winText) this.winText.destroy();
         this.events.emit("restartGame");
         this.updateTargets();
+        this.updateWindStrengthText();
+        if (this.timeOut <= 0) {
+            this.timeOut = this.seconds;
+        }
+        this.firstChipTaken = false;
     }
 }
 
@@ -285,7 +332,6 @@ class Wind {
             this.forceX = this.getForceX();
             this.forceY = this.getForceY();
             this.scene.chip.setAcceleration(this.forceX, this.forceY);
-            //this.scene.updateWindStrengthText(); // Обновление текстового объекта силы
 
         }
     }
