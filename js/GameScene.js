@@ -12,11 +12,12 @@ class GameScene extends Phaser.Scene {
         this.targetsCount = 3;
         this.tolerance = 5;
         this.minVelocityThreshold = 5;
-        this.seconds = 5;
+        this.seconds = 20;
         this.timeOut = this.seconds;
         this.targetsX = [0, -550, 550];
         this.targetsY = [400, 750, 750];
-        this.firstChipTaken = false;
+        this.firstChipTaken = true;
+        this.timerIsEnd = false;
     }
 
     preload() {
@@ -43,14 +44,14 @@ class GameScene extends Phaser.Scene {
     }
 
     createTimerText() {
-        this.timerText = this.add.text(config.width / 2, 50, 'Time: 5', { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
+        this.timerText = this.add.text(config.width / 2, 50, `Time: ${this.timeOut}`, { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
     }
 
     onTimerTick() {
         this.timerText.setText("Time: " + this.timeOut);
         if (this.timeOut <= 0) {
             this.timerEvent.remove();
-            this.restartGame();
+            this.timerIsEnd = true;
         } else {
             --this.timeOut;
         }
@@ -111,10 +112,11 @@ class GameScene extends Phaser.Scene {
         this.input.setDraggable(this.chip);
 
         this.input.on("dragstart", (pointer, gameObject) => {
-            if (!this.firstChipTaken) {
-                this.firstChipTaken = true;
+            if (this.firstChipTaken) {
+                this.firstChipTaken = false;
                 this.startTimer(); // Запуск таймера после первого взятия фишки
-                this.onTimerTick();
+            } else if (this.timeOut == this.seconds) {
+                this.startTimer();
             }
             if (this.gameIsEnd) gameObject.setAcceleration(0, 0);
             this.updateWindStrengthText();
@@ -179,7 +181,7 @@ class GameScene extends Phaser.Scene {
             this.updateScoreIndicator();
 
             this.events.emit("launchBall");
-            this.timeOut = this.seconds; // Сброс времени после взятия фишки
+            //this.timeOut = this.seconds; // Сброс времени после взятия фишки
 
         } else if (this.isLaunching) {
             this.chip.setPosition(this.chipStartPositionX, this.chipStartPositionY)
@@ -234,6 +236,9 @@ class GameScene extends Phaser.Scene {
                     this.showWin(1);
                 }
             }
+            if (this.timerIsEnd) {
+                this.showWin(0);
+            }
         } else if (this.isLaunching) {
             this.dragLine.clear();
             this.dragLine.lineStyle(10, 0xffffff, 10);
@@ -261,6 +266,8 @@ class GameScene extends Phaser.Scene {
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         } else {
             this.gameIsStart = false;
+            //this.timeOut = this.seconds;
+            this.timerText.setText("Time: " + this.timeOut);
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         }
     }
@@ -276,8 +283,10 @@ class GameScene extends Phaser.Scene {
         this.updateWindStrengthText();
         if (this.timeOut <= 0) {
             this.timeOut = this.seconds;
+            //this.firstChipTaken = false;
+            this.timerEvent.remove();
+            this.timerIsEnd = false;
         }
-        this.firstChipTaken = false;
     }
 }
 
