@@ -12,7 +12,7 @@ class GameScene extends Phaser.Scene {
         this.targetsCount = 3;
         this.tolerance = 5;
         this.minVelocityThreshold = 5;
-        this.seconds = 20;
+        this.seconds = 30;
         this.timeOut = this.seconds;
         this.targetsX = [0, -550, 550];
         this.targetsY = [400, 750, 750];
@@ -52,6 +52,7 @@ class GameScene extends Phaser.Scene {
         if (this.timeOut <= 0) {
             this.timerEvent.remove();
             this.timerIsEnd = true;
+            // this.resetScore(); // Обнулить счет игры
         } else {
             --this.timeOut;
         }
@@ -88,7 +89,7 @@ class GameScene extends Phaser.Scene {
         this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
         for (let i = 0; i < this.targetsCount; i++) {
             this.color = 0xb9b8b8;
-            this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 300, this.color, this.multipayers[i]);
+            this.target = new Target(this, config.width / 2 + this.targetsX[i] / 2, this.targetsY[i], 500, this.color, this.multipayers[i]);
             this.targets.add(this.target);
         }
     }
@@ -114,7 +115,7 @@ class GameScene extends Phaser.Scene {
         this.input.on("dragstart", (pointer, gameObject) => {
             if (this.firstChipTaken) {
                 this.firstChipTaken = false;
-                this.startTimer(); // Запуск таймера после первого взятия фишки
+                this.startTimer();
             } else if (this.timeOut == this.seconds) {
                 this.startTimer();
             }
@@ -159,6 +160,11 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    resetScore() {
+        this.math.createScore();
+        this.updateScoreIndicator();
+    }
+
     launchBall(pointer) {
         // if (!this.firstChipTaken) {
         //     this.firstChipTaken = true;
@@ -181,15 +187,10 @@ class GameScene extends Phaser.Scene {
             this.updateScoreIndicator();
 
             this.events.emit("launchBall");
-            //this.timeOut = this.seconds; // Сброс времени после взятия фишки
 
         } else if (this.isLaunching) {
             this.chip.setPosition(this.chipStartPositionX, this.chipStartPositionY)
         }
-        // if (this.firstChipTaken && this.timeOut <= 0) {
-        //     this.timeOut = this.seconds;
-        //     this.startTimer(); // Запуск таймера после истечения времени и новом взятии фишки
-        // }
     }
 
     checkTargetCollision(chip) {
@@ -197,7 +198,7 @@ class GameScene extends Phaser.Scene {
             const dx = target.x - chip.x;
             const dy = target.y - chip.y;
             const distanceSquared = dx * dx + dy * dy;
-            const targetRadiusSquared = (300 / 2) * (300 / 2);
+            const targetRadiusSquared = (500 / 2) * (500 / 2);
 
             if (distanceSquared <= targetRadiusSquared) {
                 return target;
@@ -266,7 +267,6 @@ class GameScene extends Phaser.Scene {
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         } else {
             this.gameIsStart = false;
-            //this.timeOut = this.seconds;
             this.timerText.setText("Time: " + this.timeOut);
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         }
@@ -283,9 +283,9 @@ class GameScene extends Phaser.Scene {
         this.updateWindStrengthText();
         if (this.timeOut <= 0) {
             this.timeOut = this.seconds;
-            //this.firstChipTaken = false;
             this.timerEvent.remove();
             this.timerIsEnd = false;
+            this.resetScore();
         }
     }
 }
