@@ -12,7 +12,7 @@ class GameScene extends Phaser.Scene {
         this.targetsCount = 3;
         this.tolerance = 5;
         this.minVelocityThreshold = 5;
-        this.seconds = 30;
+        this.seconds = 10;
         this.timeOut = this.seconds;
         this.targetsX = [0, -550, 550];
         this.targetsY = [400, 750, 750];
@@ -37,10 +37,14 @@ class GameScene extends Phaser.Scene {
         this.createScoreIndicator();
         this.createBetTextIndicator();
         this.createTargets();
+        this.createWindStrengthText();
+        this.createTimerText();
         this.createChip();
         this.createLaunching();
+    }
+
+    createWindStrengthText() {
         this.windStrengthText = this.add.text(20, 130, `Wind: 0`, { font: "50px Arial", fill: "#ffffff" });
-        this.createTimerText();
     }
 
     createTimerText() {
@@ -52,7 +56,7 @@ class GameScene extends Phaser.Scene {
         if (this.timeOut <= 0) {
             this.timerEvent.remove();
             this.timerIsEnd = true;
-            // this.resetScore(); // Обнулить счет игры
+            //this.showWin(0);
         } else {
             --this.timeOut;
         }
@@ -158,11 +162,6 @@ class GameScene extends Phaser.Scene {
             this.startX = pointer.x;
             this.startY = pointer.y;
         }
-    }
-
-    resetScore() {
-        this.math.createScore();
-        this.updateScoreIndicator();
     }
 
     launchBall(pointer) {
@@ -272,6 +271,28 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    showWinTotalScore() {
+        this.totalScoreText = this.add.text(config.width / 2, config.height / 2, `Total Score: ${this.math.getScore()}`, { font: "50px Arial", fill: "#ffffff" }).setOrigin(0.5);
+        this.time.delayedCall(3000, () => {
+            if (this.totalScoreText) {
+                this.totalScoreText.destroy();
+                //this.totalScoreText = null;
+            }
+        });
+    }
+
+    updateTimer() {
+        this.timeOut = this.seconds;
+        this.timerEvent.remove();
+        this.timerIsEnd = false;
+        this.resetScore();
+    }
+
+    resetScore() {
+        this.math.createScore();
+        this.updateScoreIndicator();
+    }
+
     restartGame() {
         this.chip.setVelocity(0);
         this.chip.setAcceleration(0);
@@ -282,10 +303,8 @@ class GameScene extends Phaser.Scene {
         this.updateTargets();
         this.updateWindStrengthText();
         if (this.timeOut <= 0) {
-            this.timeOut = this.seconds;
-            this.timerEvent.remove();
-            this.timerIsEnd = false;
-            this.resetScore();
+            this.showWinTotalScore();
+            this.updateTimer();
         }
     }
 }
