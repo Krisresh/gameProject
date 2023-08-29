@@ -38,7 +38,6 @@
         //     return randomElement;
         // }
 
-
         randomiseTargetsMultiplayers(targetsCount) {
             this.targetsMultiplayers = [];
             for (let i = 0; i < targetsCount; i++) {

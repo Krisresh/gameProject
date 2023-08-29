@@ -18,6 +18,7 @@ class GameScene extends Phaser.Scene {
         this.targetsY = [400, 750, 750];
         this.firstChipTaken = true;
         this.timerIsEnd = false;
+        this.destroyedTargets = [];
     }
 
     preload() {
@@ -101,7 +102,10 @@ class GameScene extends Phaser.Scene {
     updateTargets() {
         this.multipayers = this.math.randomiseTargetsMultiplayers(this.targetsCount);
         for (let i = 0; i < this.targetsCount; i++) {
-            this.targets.children.entries[i].updateMultiplayer(this.multipayers[i]);
+            const target = this.targets.children.entries[i];
+            if (target instanceof Target) {
+                target.updateMultiplayer(this.multipayers[i]);
+            }
         }
     }
 
@@ -113,6 +117,8 @@ class GameScene extends Phaser.Scene {
         this.chip.setAcceleration(0, 0);
         this.chip.setScale(0.5);
         this.chip.setInteractive();
+        this.chip.setDepth(1);
+
 
         this.input.setDraggable(this.chip);
 
@@ -206,6 +212,18 @@ class GameScene extends Phaser.Scene {
         return null;
     }
 
+    removeTarget(target) {
+        target.destroy(); // Удаление из отображения
+        this.targets.remove(target); // Удаление из группы
+
+        const destroyedTargetInfo = {
+            x: target.x,
+            y: target.y,
+            multiplayer: target.multiplayer
+        };
+        this.destroyedTargets.push(destroyedTargetInfo);
+    }
+
     update() {
         const dampingFactor = 0.98;
         if (!this.isLaunching && this.chip.body) {
@@ -231,13 +249,15 @@ class GameScene extends Phaser.Scene {
                 this.chip.setVelocity(0, 0);
                 const hitTarget = this.checkTargetCollision(this.chip);
                 if (hitTarget && this.gameIsStart) {
-                    this.showWin(3, hitTarget);
+                    this.showWin(1, hitTarget);
+                    //this.removeTarget(hitTarget); // Удаление цели
                 } else if (this.gameIsStart) {
                     this.showWin(1);
                 }
             }
             if (this.timerIsEnd) {
                 this.showWin(0);
+                this.resetDestroyedTargets();
             }
         } else if (this.isLaunching) {
             this.dragLine.clear();
@@ -251,6 +271,16 @@ class GameScene extends Phaser.Scene {
         this.wind.update();
     }
 
+    resetDestroyedTargets() {
+        for (const targetInfo of this.destroyedTargets) {
+            const { x, y, multiplayer } = targetInfo;
+            const color = 0xb9b8b8;
+            const target = new Target(this, x, y, 500, color, multiplayer);
+            this.targets.add(target);
+        }
+        this.destroyedTargets = []; // Очищаем массив
+    }
+
     showWin(delayInSeconds, target) {
         this.delayInSeconds = delayInSeconds;
         if (target) {
@@ -262,6 +292,9 @@ class GameScene extends Phaser.Scene {
             this.winText = this.add.text(config.width / 2, config.height / 2, `${this.bet * this.winMultiplayer}`, { font: "500px Arial", fill: "#ffffff" }).setOrigin(0.5);
             this.math.updateScore(this.bet * this.winMultiplayer);
             this.updateScoreIndicator();
+
+            this.removeTarget(this.target); // Удаление цели
+            this.target.multiplayerText.destroy();
 
             this.time.delayedCall(this.delayInSeconds * 1000, this.restartGame, [], this);
         } else {
@@ -285,7 +318,7 @@ class GameScene extends Phaser.Scene {
         this.timeOut = this.seconds;
         this.timerEvent.remove();
         this.timerIsEnd = false;
-        this.resetScore();
+        //this.resetScore();
     }
 
     resetScore() {
@@ -305,6 +338,7 @@ class GameScene extends Phaser.Scene {
         if (this.timeOut <= 0) {
             this.showWinTotalScore();
             this.updateTimer();
+            this.resetScore();
         }
     }
 }
